@@ -1,0 +1,114 @@
+{{#if isLoggedIn}}
+<span class="title column is-half is-offset-one-quarter titleText" >Article Recommender</span>
+<span class="subtitle column is-half is-offset-one-quarter subtitleText"><em>A project for CS 340 Intro to Databases, Oregon State University</em></span>
+<section class="section">
+    <div class="tile is-ancestor">
+        <div class="column is-2 is-centered">
+        <div class="tile is-vertical">
+                <div class="tile is-parent">
+                    <div class="tile is-child box" id="topicsTile">
+                        <p class="title">My Topics</p>
+                        <p class="subtitle">Customize your list</p>
+                        <div class="table" id="myTopics"></div>
+                    </div>
+                </div>
+                <div class="tile is-parent">
+                    <article class="tile is-child box" id="topicsTile">
+                        <p class="title">About</p>
+                        <span class="subtitle">Lorem ipsum pipsum pop 'em now I frolic with my possum</span>
+                    </article>
+                </div>
+                <div class="tile is-parent">
+                    <div class="tile is-child">
+                        sdasd
+                    </div>
+                </div>
+        </div>
+    </div>
+    <div class="column is-10 is-centered">
+        <div class="tile is-vertical is-12">
+                <div class="tile is-parent">
+                    <article class="is-child box tile" id="articleContainer">
+                        <div id="articleList">
+                        </div>
+                    </article>
+                </div>
+        </div>
+    </div>
+    </div>
+    <script src="script.js"></script>
+</section>
+{{/if}}
+{{#if isLoggedOut}}
+<section class="section">
+    <div class="tile is-ancestor">
+        <div class="tile is-vertical">
+            <div class="tile is-parent">
+                <div class="tile is-child">
+                    <p class="title box titleText">Welcome to our project page<br/><span class="subtitle subtitleText"><em>CS 340, Intro to Databases</em></span></p>
+                    
+                </div>
+            </div>
+            <div class="tile is-parent">
+                <div class="tile is-child">
+                    <p class="subtitle box">This website was built using Express-Handlebars. The database for the website was designed using DBeaver and written in MySQL. PhpMyAdmin was used for GUI access and maintenance (you know, when you have to delete everything). Bulma provides the wonderful CSS styling you see here before you.</p>
+                </div>
+            </div>
+        </div>
+        <div class="tile is-vertical">
+            <div class="tile is-parent">
+                <div class="tile is-child">
+                    <p class="subtitle box">I think I might be allergic to milk</p>
+                </div>
+            </div>
+            <div class="tile is-parent">
+                <div class="tile is-child box">
+                    <form id="registerBigForm" action="/api/register" method="post">
+                            <div class="field">
+                                <legend class="subtitle" id="registerBig">Sign up for an account: </legend>
+                                <div class="control">
+                                    <label for="email" class="label">E-mail: </label>
+                                    <input class="input" type="email" name="email" id="email">
+                                </div>
+                                <div class="control">
+                                    <label for="password" class="label">Password: </label>
+                                    <input class="input" type="password" autocomplete="new-password" name="password" id="password">
+                                </div>
+                            </div>
+                        <button class="button is-info has-background-info" type="submit" id="submitBig">Sign Up</button>
+                        <a class="button" id="switchButtonBig" onclick="switchToLoginBig()">Already have one?</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{{/if}}
+</div>
+<script>
+function switchToLoginBig(){
+    var registerBig = document.querySelector('#registerBig');
+    registerBig.innerText = "Log in to your account";
+    var registerBigForm = document.querySelector('#registerBigForm');
+    registerBigForm.setAttribute("action", "/api/login");
+    var switchButtonBig = document.querySelector('#switchButtonBig');
+    switchButtonBig.textContent = "Don't have an account yet?";
+    switchButtonBig.setAttribute("onclick", "switchToRegisterBig()");
+    var submitBig = document.querySelector('#submitBig');
+    submitBig.textContent = "Login"
+    submitBig.classList.replace("has-background-info", "is-light")
+    }
+function switchToRegisterBig(){
+    var registerBig = document.querySelector('#registerBig');
+    registerBig.innerHTML = "Sign up for an account";
+    var registerBigForm = document.querySelector('#registerBigForm');
+    registerBigForm.setAttribute("action", "/api/register");
+    var switchButtonBig = document.querySelector('#switchButtonBig');
+    switchButtonBig.textContent = "Already have an account?";
+    switchButtonBig.setAttribute("onclick", "switchToLoginBig()")
+    var submitBig = document.querySelector('#submitBig');
+    submitBig.textContent = "Sign Up"
+    submitBig.classList.replace("is-light", "has-background-info")
+}
+</script>
+</div>
