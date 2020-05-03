@@ -1,8 +1,9 @@
 var express = require('express');
 var session = require('express-session');
 var mysql = require('./dbcon.js');  // this is my database config. 
-//var bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt');
 var path = require('path');
+var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest
 var bodyParser = require('body-parser');  
 
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
@@ -51,13 +52,13 @@ app.get('/', function(req, res){
     res.render('home', context)
 });
 
-var register = /*async*/ function(req, res){
-    /*const saltRounds = 10;*/
-    /*const encryptPassword = await bcrypt.hash(password, saltRounds);*/
+var register = async function(req, res){
+    const saltRounds = 10;
     const password = req.body.password;
+    const encryptPassword = await bcrypt.hash(password, saltRounds);
     var users = {
         "email":req.body.email,
-        "password":password
+        "password":encryptPassword
     }
     mysql.pool.query('INSERT INTO Users SET ?', users, function(error, results, fields){
         if(error){
@@ -74,17 +75,17 @@ var register = /*async*/ function(req, res){
 
 }
 
-var login = /*async*/ function(req, res){
+var login = async function(req, res){
     var email = req.body.email;
     var password = req.body.password;
-    mysql.pool.query('SELECT * FROM Users WHERE email = ?', [email], /*async*/ function(error, results, fields){
+    mysql.pool.query('SELECT * FROM Users WHERE email = ?', [email], async function(error, results, fields){
         if(error){
             res.send({
                 "code":400,
                 "failed":"error!"
             })
         } else{
-/*             if(results.length>0){                                                        // bcrypt is a password hashing module that's
+             if(results.length>0){                                                        // bcrypt is a password hashing module that's
                 const compare = await bcrypt.compare(password, results[0].password)         // incompatible with OSU's node.js version
                 if(compare){                                                                // it breaks our ability to host on the flip server
                     req.session.loggedin = true;                                            // but something should replace it
@@ -96,7 +97,7 @@ var login = /*async*/ function(req, res){
                         "success":"Bad credentials"
                     })
                 }
-            } */
+            } 
             if(results.length > 0){
                 if(password == results[0].password){
                     req.session.loggedin = true;
@@ -137,13 +138,12 @@ router.get('/logout', function(req, res, next){
 })
 
 router.get('/getTopics', function(req, res, next){
-    mysql.pool.query('SELECT * FROM Topics', /*async*/ function(error, result){
+    mysql.pool.query('SELECT * FROM Topics', async function(error, result){
         if(error){
             console.log(error)
         }
         else{
             if(result.length > 0){
-                result.responseText = "hidasd"
                 res.send(result)
             }
         }

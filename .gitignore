@@ -105,3 +105,7 @@ dist
 
 # TernJS port file
 .tern-port
+get-articles-contextual.js
+arec.zip
+get-articles-nyt.js
+getArticles.js

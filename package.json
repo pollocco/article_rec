@@ -4,21 +4,25 @@
   "description": "",
   "main": "article.js",
   "scripts": {
+    "start": "node server.js 8080",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Connor Pollock, Matthew Spencer",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^4.0.1",
     "body-parser": "^1.13.3",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.13.2",
-    "express-handlebars": "^2.0.1",
-    "express-session": "^1.11.3",
+    "express-handlebars": "4.0.4",
+    "express-session": "1.17.1",
     "forever": "^2.0.0",
     "jsonfile": "^6.0.1",
-    "mysql": "^2.8.0",
+    "mysql": "2.18.1",
     "postman": "^0.2.0",
+    "request": "^2.88.2",
+    "unirest": "^0.6.0",
     "xmlhttprequest": "^1.8.0"
   }
 }

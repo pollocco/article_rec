@@ -1,0 +1,47 @@
+body {
+    font-family: 'Source Serif Pro', 'Roboto Slab', Georgia, 'Times New Roman', Times, serif;
+}
+
+.hero-body{
+    background-color: rgb(254, 254, 255);
+}
+
+
+
+#wizardAvatar{
+    font-size: 36px;
+    cursor: pointer;
+}
+
+#noteIcon{
+    font-size: 48px;
+    user-select: none;
+    text-align: center;
+    justify-content: center;
+}
+
+.dropdown-menu{
+    min-width: 18rem;
+}
+
+#header{
+    display: block;
+}
+
+.titleText{
+    text-align: center;
+    font-size: 3rem;
+    font-family: 'Source Serif Pro', 'Roboto Slab', Georgia, 'Times New Roman', Times, serif;
+    font-style: normal;
+}
+
+.subtitleText{
+    text-align: center;
+    font-size: 2rem;
+    font-family: 'EB Garamond', 'Source Serif Pro', 'Roboto Slab', Georgia, 'Times New Roman', Times, serif
+}
+
+
+#tagline{
+    color: rgb(150, 150, 150);
+}
