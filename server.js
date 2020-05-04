@@ -202,58 +202,100 @@ router.get('/getUserTopics', function(req, res, next){
 })
 
 router.post('/toggleTopic', function(req, res, next){
-    mysql.pool.query('SELECT userId FROM Users WHERE email=?', [req.session.username], function(error, result){
+    var userTopic = {
+        "userId":result[0].userId,
+        "topicId": req.session.userId
+    }
+    mysql.pool.query('SELECT * FROM UserTopics WHERE userId=? AND topicId=?', [userTopic["userId"], userTopic["topicId"]], function(error, result){
         if(error){
             console.log(error)
         }
         else{
             if(result.length == 1){
-                var userTopic = {
-                    "userId":result[0].userId,
-                    "topicId": req.body.topicId
-                }
-                mysql.pool.query('SELECT * FROM UserTopics WHERE userId=? AND topicId=?', [userTopic["userId"], userTopic["topicId"]], function(error, result){
+                mysql.pool.query('DELETE FROM UserTopics WHERE userId=? AND topicId=?', [userTopic["userId"], userTopic["topicId"]], function(error, result){
                     if(error){
                         console.log(error)
                     }
                     else{
-                        if(result.length == 1){
-                            mysql.pool.query('DELETE FROM UserTopics WHERE userId=? AND topicId=?', [userTopic["userId"], userTopic["topicId"]], function(error, result){
-                                if(error){
-                                    console.log(error)
-                                }
-                                else{
-                                    mysql.pool.query('SELECT * FROM UserTopics WHERE userId=?', [userTopic["userId"]], function(error, result){
-                                        if(error){
-                                            console.log(error)
-                                        }
-                                        else{
-                                            res.send(result)
-                                        }
-                                    })
-                                }
-                            })
-                        }
-                        else{
-                            mysql.pool.query('INSERT INTO UserTopics SET ?', userTopic, function(error, result){
-                                if(error){
-                                    console.log(error)
-                                }
-                                else{
-                                    mysql.pool.query('SELECT * FROM UserTopics WHERE userId=?', [userTopic["userId"]], function(error, result){
-                                        if(error){
-                                            console.log(error)
-                                        }
-                                        else{
-                                            res.send(result)
-                                        }
-                                    })
-                                }
-                            })
-                        }
+                        mysql.pool.query('SELECT * FROM UserTopics WHERE userId=?', [userTopic["userId"]], function(error, result){
+                            if(error){
+                                console.log(error)
+                            }
+                            else{
+                                res.send(result)
+                            }
+                        })
                     }
                 })
+            }
+            else{
+                mysql.pool.query('INSERT INTO UserTopics SET ?', userTopic, function(error, result){
+                    if(error){
+                        console.log(error)
+                    }
+                    else{
+                        mysql.pool.query('SELECT * FROM UserTopics WHERE userId=?', [userTopic["userId"]], function(error, result){
+                            if(error){
+                                console.log(error)
+                            }
+                            else{
+                                res.send(result)
+                            }
+                        })
+                    }
+                })
+            }
+        }
+    })
+})
 
+router.post('/toggleUserArticle', function(req, res, next){
+    var dateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    var articleId = req.body.articleId;
+    var userArticle = {
+        "userId": req.session.userId,
+        "articleId": articleId,
+        "lastViewed": dateTime,
+        "userSaved": true
+    }
+    mysql.pool.query('SELECT * FROM UserArticles WHERE userId=? AND articleId=?', [userArticle["userId"], userArticle["articleId"]], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            if(result.length === 1){
+                mysql.pool.query('UPDATE UserArticles WHERE userId=? AND articleId=? SET lastViewed=?', [userArticle["userId"], userArticle["articleId"], userArticle["lastViewed"]], function(error, result){
+                    if(error){
+                        console.log(error)
+                    }
+                    else{
+                        mysql.pool.query('SELECT * FROM UserArticles WHERE userId=?', [userArticle["userId"]], function(error, result){
+                            if(error){
+                                console.log(error)
+                            }
+                            else{
+                                res.send(result)
+                            }
+                        })
+                    }
+                })
+            }
+            else{
+                mysql.pool.query('INSERT INTO UserArticles (userId, articleId, lastViewed) VALUES (?, ?, ?)', [userArticle["userId"], userArticle["articleId"], userArticle["lastViewed"]], function(error, result){
+                    if(error){
+                        console.log(error)
+                    }
+                    else{
+                        mysql.pool.query('SELECT * FROM UserArticles WHERE userId=?', [userArticle["userId"]], function(error, result){
+                            if(error){
+                                console.log(error)
+                            }
+                            else{
+                                res.send(result)
+                            }
+                        })
+                    }
+                })
             }
         }
     })

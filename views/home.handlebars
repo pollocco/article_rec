@@ -4,7 +4,7 @@
 <section class="section">
     <div class="tile is-ancestor">
         <div class="column is-2 is-centered">
-        <div class="tile is-vertical">
+            <div class="tile is-vertical">
                 <div class="tile is-parent">
                     <div class="tile is-child box" id="topicsTile">
                         <p class="title">My Topics</p>
@@ -12,29 +12,26 @@
                         <div class="table" id="myTopics"></div>
                     </div>
                 </div>
-                <div class="tile is-parent">
-                    <article class="tile is-child box" id="topicsTile">
-                        <p class="title">About</p>
-                        <span class="subtitle">Lorem ipsum pipsum pop 'em now I frolic with my possum</span>
-                    </article>
-                </div>
-                <div class="tile is-parent">
-                    <div class="tile is-child">
-                        sdasd
+            </div>
+        </div>
+        <div class="column is-7 is-centered">
+            <div class="tile is-vertical is-12">
+                    <div class="tile is-parent">
+                        <article class="is-child box tile" id="articleContainer">
+                            <div id="articleList">
+                            </div>
+                        </article>
                     </div>
-                </div>
+            </div>
         </div>
-    </div>
-    <div class="column is-10 is-centered">
-        <div class="tile is-vertical is-12">
-                <div class="tile is-parent">
-                    <article class="is-child box tile" id="articleContainer">
-                        <div id="articleList">
-                        </div>
-                    </article>
-                </div>
+        <div class="column is-3 is-centered">
+            <div class="tile is-parent">
+                <article class="tile is-child box">
+                    <p class="title">Recent Articles</p>
+                    <div id="recent-articles"></div>
+                </article>
+            </div>
         </div>
-    </div>
     </div>
     <script src="script.js"></script>
 </section>

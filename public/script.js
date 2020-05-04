@@ -23,25 +23,31 @@ function makeTable(response){
     for(i=0; i<response.length; i++){
         let row = thead.insertRow();
         row.classList.add('topicRow')
+
         let cell = row.insertCell();
         let cellText = document.createElement("label");
         cellText.innerText = `${response[i].name}`
         cell.appendChild(cellText);
+
         let checkboxCell = row.insertCell();
+
         let checkbox = document.createElement("input");
         checkbox.cellText = cellText;
         checkbox.name = `${response[i].name}`
         checkbox.topicId = `${response[i].topicId}`;
         checkbox.setAttribute("type", "checkbox");
+
         checkbox.addEventListener("click", function(){
             event.preventDefault();
-            //checkbox.cellText.innerHTML = `<progress class="progress is-small is-primary" max="100">15%</progress>`
             toggleUserTopic(checkbox)
         })
+
         checkbox.setAttribute("name", `${response[i].name}`)
         checkbox.setAttribute("id", `${response[i].name}`)
         cellText.setAttribute("for", `${response[i].name}`)
+
         checkboxes.push(checkbox)
+
         checkboxCell.appendChild(checkbox);
     }
     topicsTable.className = "table is-child"
@@ -92,7 +98,32 @@ function displayNoArticles(){
     }
     let articleDiv = document.createElement('div')
     articleDiv.className = "tile is-parent is-vertical box"
-    articleDiv.innerHTML = `<p class='title is-5'>We don't have any articles for you yet!</p><p class='subtitle is-6'>Pick some topics to get started.</p><p class="columns is-centered><icon class="icon column is-centered is-large" id="noteIcon">📝</icon></p>`
+    articleDiv.style.textAlign = "center";
+    articleDiv.style.padding = "60px"
+
+    let articleDivPara = document.createElement('p')
+    articleDivPara.className = "title is-5"
+    articleDivPara.innerText = "We don't have any articles for you yet!"
+
+    let articleDivParaSub = document.createElement('p')
+    articleDivParaSub.className = "subtitle is-6"
+    articleDivParaSub.innerText = "Pick some topics to get started"
+
+    let pencilIconCol = document.createElement('p')
+    pencilIconCol.className = "columns is-centered"
+
+    let pencilIcon = document.createElement('icon')
+    pencilIcon.id = "noteIcon"
+    pencilIcon.className = "subtitle is-6"
+    pencilIcon.innerText = "📝"
+    pencilIcon.className = "icon column is-centered is-large" 
+
+    pencilIconCol.appendChild(pencilIcon)
+    
+    articleDivPara.appendChild(articleDivParaSub)
+    articleDivPara.appendChild(pencilIconCol)
+    articleDiv.appendChild(articleDivPara)
+
     articleList.appendChild(articleDiv);
 }
 
@@ -104,7 +135,6 @@ function toggleUserTopic(checkbox){
         if(req.status >= 200 && req.status < 400){
             var response = JSON.parse(req.responseText);
             console.log(response)
-            //checkbox.cellText.innerHTML = `<label for="${checkbox.name} class="label">${checkbox.name}</label>`
             checkbox.checked = !(checkbox.checked)
             if(response.length > 0){
                 getTopicArticles(response)
@@ -122,6 +152,97 @@ function toggleUserTopic(checkbox){
     }
     req.send(JSON.stringify(jsonObj));
     return;
+}
+
+function toggleUserArticle(likeButton){
+    var req = new XMLHttpRequest();
+    req.open("POST", '/api/toggleUserArticle', true);
+    req.setRequestHeader('Content-Type', 'application/json');
+    req.addEventListener('load', function(){
+        if(req.status >= 200 && req.status < 400){
+            var response = JSON.parse(req.responseText);
+            console.log(response)
+            if(response.length > 0){
+                getUserArticlesHistory();
+            }
+        }
+        else{
+            console.log("Error! " + req.statusText);
+        }
+    })
+    let jsonObj = {
+        "articleId": likeButton.articleId
+    }
+    req.send(JSON.stringify(jsonObj));
+    return;
+}
+
+
+function getUserArticlesHistorySidebar(){
+    var req = new XMLHttpRequest();
+    req.open("GET", "/api/getUserArticlesHistory");
+    req.setRequestHeader('Content-Type', 'application/json');
+    req.addEventListener('load', function(){
+        if(req.status >= 200 && req.status < 400){
+            var response = JSON.parse(req.responseText);
+            console.log('wat', response);
+
+            if(response.length > 0){
+                makeUserArticleHistorySidebar(response);
+            }
+            else{
+                // displayNoArticles();
+            }
+        }
+        else{
+            console.log("Error! " + req.statusText);
+        }
+    })
+    req.send();
+}
+
+
+function makeUserArticleHistorySidebar(response){
+    var ul = document.createElement("ul");
+    console.log('asdf', response.length)
+    for(var i=0; i < response.length; i++){
+
+        let title = document.createElement("span");
+        title.innerText = response[i].title
+        let linefeed = document.createElement("br")
+        title.appendChild(linefeed)
+        title.className = "subtitle";
+
+        let content = document.createElement("span");
+        content.innerText = response[i].content.substr(0,100) + " ... ";
+        content.className = "content";
+
+        let link = document.createElement("a");
+        link.innerHTML = 'Read Again <i class="fas fa-share"></i>';
+        link.href = response[i].url;
+        link.target = '_blank';
+
+        let lastViewed = document.createElement("span");
+        let date = new Date(response[i].lastViewed)
+
+        let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
+        let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
+        let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
+
+        lastViewed.innerText = `Read: ${month} ${day} ${year} `;
+        lastViewed.className = "last-viewed";
+
+        let li =  document.createElement("li");
+        li.appendChild(title);
+        li.appendChild(content);
+        li.appendChild(lastViewed);
+        li.appendChild(link);
+
+        ul.appendChild(li);
+    }
+    var userArticleHistoryList = document.querySelector('#recent-articles');
+    userArticleHistoryList.appendChild(ul);
+    // getUserTopics(checkboxes);
 }
 
 function getTopicArticles(response){
@@ -174,55 +295,35 @@ function makeTopicArticles(response){
     else{
         for(i=0; i<response.length; i++){
             let listItem = document.createElement('li');
-            listItem.innerHTML = `<p class='title is-5'>${response[i].title}<p><em class="subtitle is-6" font-family: 'EB Garamond', Georgia, Times, serif;">${response[i].date.substring(0, 10)}</em></p></p>`
-            if(response[i].hasOwnProperty('imageUrl') && response[i].imageUrl != null){
-                listItem.innerHTML += `<div class="card" style="width:300; height:200;"><div class="card-image"><figure class="image" style="width:300; height:200;"><img src='${response[i].imageUrl}'</figure></div></div>`
-            }
-            splitContent = response[i].content.split("\n\n")
-            for(j=0; j<splitContent.length; j++){
-                if(j == 0){
-                    listItem.innerHTML +=  `<p class='subtitle articleContent' style="font-weight: bold; font-family: 'EB Garamond'; font-size: 1.5rem">${splitContent[j]}</p>`
-                }
-                else if((j == 8 || j == 24 || j == 40 || j == 56) && splitContent.length - j > 4){
-                    if(splitContent[j].length < 150){
-                        while(splitContent[j].length < 150 && splitContent.length - j > 4){
-                            listItem.innerHTML += `<p class='subtitle is-6 articleContent'>${splitContent[j]}</p>`
-                            j++
-                        }
-                        if(splitContent.length - j > 4){
-                            listItem.innerHTML += `<div class="box" style="background-color: rgb(219, 232, 255);width: 50%; float: left; margin-right: 5%;"><p class='subtitle articleContent' style="font-weight: bold; font-style=italic; font-family: 'EB Garamond'; font-size: 1rem;">${splitContent[j]}</p>`
-                        }
-                        else{
-                            `<p class='subtitle is-6 articleContent'>${splitContent[j]}</p>`
-                        }
-                    }
-                    else{
-                        listItem.innerHTML += `<div class="box" style="background-color: rgb(219, 232, 255);width: 50%; float: left; margin-right: 5%;"><p class='subtitle articleContent' style="font-weight: bold; font-style=italic; font-family: 'EB Garamond'; font-size: 1rem;">${splitContent[j]}</p>`
-                    }
-                }
-                else if((j == 16 || j == 32 || j == 48 || j == 64) && splitContent.length - j > 4){
-                    if(splitContent[j].length < 150){
-                        while(splitContent[j].length < 150 && splitContent.length - j > 4){
-                            listItem.innerHTML += `<p class='subtitle is-6 articleContent'>${splitContent[j]}</p>`
-                            j++
-                        }
-                        if(splitContent.length - j > 4){
-                            listItem.innerHTML += `<div class="box" style="background-color: rgba(246, 255, 231, 0.884); width: 50%; float: right; margin-left: 5%;"><p class='subtitle articleContent' style="font-weight: bold; font-style=italic; font-family: 'EB Garamond'; font-size: 1rem;">${splitContent[j]}</p>`
-                        }
-                        else{
-                            `<p class='subtitle is-6 articleContent'>${splitContent[j]}</p>`
-                        }
-                    }
-                    else{
-                        listItem.innerHTML += `<div class="box" style="background-color: rgba(246, 255, 231, 0.884); width: 50%; float: right; margin-left: 5%;"><p class='subtitle articleContent' style="font-weight: bold; font-style=italic; font-family: 'EB Garamond'; font-size: 1rem;">${splitContent[j]}</p>`
-                    }
-                }
-                else{
-                    listItem.innerHTML += `<p class='subtitle is-6 articleContent'>${splitContent[j]}</p>`
-                }
-            }
-            listItem.innerHTML += `<a style="padding-right: 20px;" href="javascript:openArticle(${response[i].articleId}, '${response[i].url}')"><strong><u>Read</u></strong></a>`
-            listItem.innerHTML += `<button class="button is-small"><span class="icon is-small"><i class="far fa-thumbs-up"></i></span><span>Like</span></button>`
+            let articleTitle = document.createElement('p')
+
+            articleTitle.className = "title is-5"
+            articleTitle.innerText = response[i].title
+            listItem.appendChild(articleTitle)
+
+            let articleDate = document.createElement('p');
+            articleDate.style.fontFamily = "'EB Garamond', Georgia, Times, serif"
+            let articleDateText = document.createElement('em');
+            articleDateText.innerText = response[i].date.substring(0, 10)
+            articleDate.appendChild(articleDateText)
+            listItem.appendChild(articleDate);
+
+            let articleContent = document.createElement('p');
+            articleContent.className = "subtitle is-6"
+            articleContent.innerText = response[i].content
+            listItem.appendChild(articleContent)
+
+            let readButton = document.createElement('a')
+            readButton.style.paddingRight = "20px"
+            readButton.url = response[i].url
+            readButton.articleId = response[i].articleId
+            readButton.addEventListener('click', function(){
+                window.open(readButton.url, '__blank')
+                toggleUserArticle(readButton)
+            })
+            readButton.innerText = "Read"
+            listItem.appendChild(readButton);
+
             let listItemDiv = document.createElement("div");
             listItemDiv.className = "tile is-parent is-vertical box"
             listItemDiv.id = "listItemDiv"
@@ -241,3 +342,4 @@ function makeTopicArticles(response){
 
 
 getTopics();
+getUserArticlesHistory();
