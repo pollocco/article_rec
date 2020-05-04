@@ -342,4 +342,4 @@ function makeTopicArticles(response){
 
 
 getTopics();
-getUserArticlesHistory();
+getUserArticlesHistorySidebar();

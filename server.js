@@ -203,8 +203,8 @@ router.get('/getUserTopics', function(req, res, next){
 
 router.post('/toggleTopic', function(req, res, next){
     var userTopic = {
-        "userId":result[0].userId,
-        "topicId": req.session.userId
+        "userId":req.session.userId,
+        "topicId": req.body.topicId
     }
     mysql.pool.query('SELECT * FROM UserTopics WHERE userId=? AND topicId=?', [userTopic["userId"], userTopic["topicId"]], function(error, result){
         if(error){
