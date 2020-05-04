@@ -46,6 +46,15 @@ body {
     color: rgb(150, 150, 150);
 }
 
+#dropdown-menu2 ul li a{
+    display: block;
+    padding: 10px 0;
+    /* margin: 5px 0; */
+}
+#dropdown-menu2 ul {
+    margin-bottom:20px;
+}
+
 .avatar-large {
     text-align: center;
     font-size: 120px;
