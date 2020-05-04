@@ -1,10 +1,10 @@
 var express = require('express');
 var session = require('express-session');
-var mysql = require('./dbcon.js');  // this is my database config. 
+var mysql = require('./dbcon.js');  // this is my database config.
 var bcrypt = require('bcrypt');
 var path = require('path');
 var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest
-var bodyParser = require('body-parser');  
+var bodyParser = require('body-parser');
 
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 
@@ -52,6 +52,29 @@ app.get('/', function(req, res){
     res.render('home', context)
 });
 
+app.get('/user', function(req, res){
+    var context = {}
+    if(req.session.loggedin){
+        context.message = "Hey there " + req.session.username;
+        context.user = req.session.username;
+        context.isLoggedOut = false;
+        context.isLoggedIn = true;
+    }
+    else if(req.session.isRegistered){
+        context.message = "You're all signed up " + req.session.regEmail + ". Be even cooler if you signed in.";
+        context.isLoggedOut = true;
+        res.render('home', context);
+        return
+    }
+    else{
+        context.message = "Please sign in or register to continue"
+        context.isLoggedOut = true;
+        res.render('home', context);
+        return;
+    }
+    res.render('user', context);
+});
+
 var register = async function(req, res){
     const saltRounds = 10;
     const password = req.body.password;
@@ -90,6 +113,7 @@ var login = async function(req, res){
                 if(compare){                                                                // it breaks our ability to host on the flip server
                     req.session.loggedin = true;                                            // but something should replace it
                     req.session.username = email;
+                    req.session.userId = results[0].userId;
                     res.redirect('/')
                 } else{
                     res.send({
@@ -97,7 +121,7 @@ var login = async function(req, res){
                         "success":"Bad credentials"
                     })
                 }
-            } 
+            }
             if(results.length > 0){
                 if(password == results[0].password){
                     req.session.loggedin = true;
@@ -172,7 +196,7 @@ router.get('/getUserTopics', function(req, res, next){
                         }
                     }
                 )
-            } 
+            }
         }
     })
 })
@@ -229,7 +253,7 @@ router.post('/toggleTopic', function(req, res, next){
                         }
                     }
                 })
-                
+
             }
         }
     })
@@ -238,6 +262,32 @@ router.post('/toggleTopic', function(req, res, next){
 router.post('/getTopicArticles', function(req, res, next){
     var userId = req.body.userId;
     mysql.pool.query('SELECT * FROM Articles WHERE articleId IN (SELECT articleId FROM ArticleTopics WHERE topicId IN (SELECT topicId FROM UserTopics WHERE userId=?))', [userId], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+})
+
+router.get('/getUserArticlesHistory', function(req, res, next){
+    var userId = req.session.userId;
+    mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed FROM Articles JOIN UserArticles ON Articles.articleId = UserArticles.articleId where userId = ?', [userId], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+});
+
+router.post('/setUserReadArticle', function(req, res, next){
+    var userId = req.session.userId;
+    var articleId = req.body.articleId;
+    var dateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    mysql.pool.query('INSERT INTO UserArticles (userId, articleId, lastViewed) VALUES (?, ?, ?);', [userId, articleId, dateTime], function(error, result){
         if(error){
             console.log(error)
         }

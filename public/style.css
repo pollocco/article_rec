@@ -45,3 +45,52 @@ body {
 #tagline{
     color: rgb(150, 150, 150);
 }
+
+.avatar-large {
+    text-align: center;
+    font-size: 120px;
+    margin-bottom: 33px;
+}
+.avatar-large .avatar{
+    display: inline-block;
+    width: 160px;
+    height: 160px;
+    background: #b1b2bd;
+    border-radius: 80px;
+}
+.user-info .username {
+    margin-top:20px;
+}
+
+.table {
+    width:100%;
+}
+.table thead td, .table thead th {
+    border-width: 0 0 1px;
+}
+
+.user-article-history-list {
+    overflow: scroll;
+    max-height: 800px;
+    margin-bottom: 50px;
+}
+.user-article-history-list .subtitle {
+    margin-bottom: 0.3rem;
+}
+.user-article-history-list .content {
+    margin-bottom: 0.2rem;
+    color: #777;
+}
+.user-article-history-list .last-viewed, .user-article-history-list a {
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.user-article-history-list .subtitle, .user-article-history-list .content {
+    display:block;
+}
+.user-article-history-list ul li {
+    border-bottom: 1px solid #ccc;
+    padding: 15px 0 15px;
+}

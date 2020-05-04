@@ -44,7 +44,7 @@ function makeTable(response){
         checkboxes.push(checkbox)
         checkboxCell.appendChild(checkbox);
     }
-    topicsTable.className = "table tile is-child"
+    topicsTable.className = "table is-child"
     var myTopics = document.querySelector('#myTopics');
     myTopics.appendChild(topicsTable);
     getUserTopics(checkboxes);
@@ -93,7 +93,7 @@ function displayNoArticles(){
     let articleDiv = document.createElement('div')
     articleDiv.className = "tile is-parent is-vertical box"
     articleDiv.innerHTML = `<p class='title is-5'>We don't have any articles for you yet!</p><p class='subtitle is-6'>Pick some topics to get started.</p><p class="columns is-centered><icon class="icon column is-centered is-large" id="noteIcon">📝</icon></p>`
-    articleList.appendChild(articleDiv);     
+    articleList.appendChild(articleDiv);
 }
 
 function toggleUserTopic(checkbox){
@@ -145,6 +145,27 @@ function getTopicArticles(response){
     req.send(JSON.stringify(jsonObj));
 }
 
+function openArticle(id, url) {
+    var req = new XMLHttpRequest();
+    req.open("POST", '/api/setUserReadArticle', true);
+    req.setRequestHeader('Content-Type', 'application/json');
+    req.addEventListener('load', function(){
+        if(req.status >= 200 && req.status < 400){
+            var response = JSON.parse(req.responseText);
+            console.log(response);
+        }
+        else{
+            console.log("Error! " + req.statusText)
+        }
+    })
+    let jsonObj = {
+        "articleId": id
+    }
+    req.send(JSON.stringify(jsonObj));
+    window.open(url, '_blank');
+}
+
+
 function makeTopicArticles(response){
     var list = document.createElement("ul");
     if(response.length == 0){
@@ -153,7 +174,7 @@ function makeTopicArticles(response){
     else{
         for(i=0; i<response.length; i++){
             let listItem = document.createElement('li');
-            listItem.innerHTML = `<p class='title is-5'>${response[i].title}<p><em class="subtitle is-6" font-family: 'EB Garamond', Georgia, Times, serif;">${response[i].date.substring(0, 10)}</em></p></p>` 
+            listItem.innerHTML = `<p class='title is-5'>${response[i].title}<p><em class="subtitle is-6" font-family: 'EB Garamond', Georgia, Times, serif;">${response[i].date.substring(0, 10)}</em></p></p>`
             if(response[i].hasOwnProperty('imageUrl') && response[i].imageUrl != null){
                 listItem.innerHTML += `<div class="card" style="width:300; height:200;"><div class="card-image"><figure class="image" style="width:300; height:200;"><img src='${response[i].imageUrl}'</figure></div></div>`
             }
@@ -200,7 +221,7 @@ function makeTopicArticles(response){
                     listItem.innerHTML += `<p class='subtitle is-6 articleContent'>${splitContent[j]}</p>`
                 }
             }
-            listItem.innerHTML += `<a href="${response[i].url}" style="padding-right: 20px;"><strong><u>Read</u></strong></a>`
+            listItem.innerHTML += `<a style="padding-right: 20px;" href="javascript:openArticle(${response[i].articleId}, '${response[i].url}')"><strong><u>Read</u></strong></a>`
             listItem.innerHTML += `<button class="button is-small"><span class="icon is-small"><i class="far fa-thumbs-up"></i></span><span>Like</span></button>`
             let listItemDiv = document.createElement("div");
             listItemDiv.className = "tile is-parent is-vertical box"
@@ -217,5 +238,6 @@ function makeTopicArticles(response){
         articleList.appendChild(list)
     }
 }
+
 
 getTopics();
