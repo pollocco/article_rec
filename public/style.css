@@ -91,9 +91,7 @@ body {
     color: #777;
 }
 .user-article-history-list .last-viewed, .user-article-history-list a {
-    font-size: 0.9rem;
-    display: inline-block;
-    margin-right: 15px;
+    margin-right: 10px;
 }
 
 .user-article-history-list .subtitle, .user-article-history-list .content {

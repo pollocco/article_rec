@@ -1,8 +1,11 @@
 
 function makeUserArticleHistory(response){
     var ul = document.createElement("ul");
-    console.log('asdf', response.length)
     for(var i=0; i < response.length; i++){
+
+        let topic = document.createElement("span");
+        topic.innerText = response[i].topic;
+        topic.className = "is-size-7 is-uppercase is-block";
 
         let title = document.createElement("span");
         title.innerText = response[i].title;
@@ -16,6 +19,7 @@ function makeUserArticleHistory(response){
         link.innerHTML = 'Read Again <i class="fas fa-share"></i>';
         link.href = response[i].url;
         link.target = '_blank';
+        link.className = "is-size-7 is-italic";
 
         let lastViewed = document.createElement("span");
         let date = new Date(response[i].lastViewed)
@@ -24,10 +28,11 @@ function makeUserArticleHistory(response){
         let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
         let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
 
-        lastViewed.innerText = `Read: ${month} ${day} ${year} `;
-        lastViewed.className = "last-viewed";
+        lastViewed.innerText = `Read ${month} ${day} ${year} `;
+        lastViewed.className = "is-size-7 is-italic last-viewed";
 
         let li =  document.createElement("li");
+        li.appendChild(topic);
         li.appendChild(title);
         li.appendChild(content);
         li.appendChild(lastViewed);
@@ -46,14 +51,12 @@ function getUserArticlesHistory(){
     req.addEventListener('load', function(){
         if(req.status >= 200 && req.status < 400){
             var response = JSON.parse(req.responseText);
-            console.log('wat', response);
-
             if(response.length > 0){
+                console.log(response)
                 makeUserArticleHistory(response);
-                // getTopicArticles(response);
             }
             else{
-                // displayNoArticles();
+                makeNoHistory();
             }
         }
         else{

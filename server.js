@@ -315,7 +315,10 @@ router.post('/getTopicArticles', function(req, res, next){
 
 router.get('/getUserArticlesHistory', function(req, res, next){
     var userId = req.session.userId;
-    mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed FROM Articles JOIN UserArticles ON Articles.articleId = UserArticles.articleId where userId = ?', [userId], function(error, result){
+    mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed, Topics.name as topic FROM Articles ' +
+    'JOIN UserArticles ON Articles.articleId = UserArticles.articleId ' +
+    'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId WHERE userId = ?', [userId], function(error, result){
         if(error){
             console.log(error)
         }
