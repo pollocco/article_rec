@@ -357,12 +357,12 @@ function makeTopicArticles(response){
             list.appendChild(listItemDiv)
         }
         var articleList = document.querySelector('#articleList')
-        if(articleList.hasChildNodes()){
+        if(articleList && articleList.hasChildNodes()){
             for(i=0; i<articleList.children.length;i++){
                 articleList.removeChild(articleList.children[i])
             }
+            articleList.appendChild(list);
         }
-        articleList.appendChild(list)
     }
 }
 
