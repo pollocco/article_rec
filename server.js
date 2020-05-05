@@ -303,7 +303,15 @@ router.post('/toggleUserArticle', function(req, res, next){
 
 router.post('/getTopicArticles', function(req, res, next){
     var userId = req.body.userId;
-    mysql.pool.query('SELECT * FROM Articles WHERE articleId IN (SELECT articleId FROM ArticleTopics WHERE topicId IN (SELECT topicId FROM UserTopics WHERE userId=?))', [userId], function(error, result){
+    mysql.pool.query('SELECT Articles.*, Topics.name as topic, Authors.*, Periodicals.name as periodicalName, Periodicals.url as periodicalUrl FROM Articles  ' +
+    'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+    'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'JOIN AuthorArticles ON Articles.articleId = AuthorArticles.articleId ' +
+    'JOIN Authors ON AuthorArticles.authorId = Authors.authorId ' +
+    'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
+    'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
+    'WHERE UserTopics.userId = ?', [userId], function(error, result){
         if(error){
             console.log(error)
         }

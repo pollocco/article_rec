@@ -19,7 +19,7 @@ function makeUserArticleHistory(response){
         link.innerHTML = 'Read Again <i class="fas fa-share"></i>';
         link.href = response[i].url;
         link.target = '_blank';
-        link.className = "is-size-7 is-italic";
+        link.className = "is-size-6 is-italic";
 
         let lastViewed = document.createElement("span");
         let date = new Date(response[i].lastViewed)
@@ -28,13 +28,13 @@ function makeUserArticleHistory(response){
         let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
         let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
 
-        lastViewed.innerText = `Read ${month} ${day} ${year} `;
-        lastViewed.className = "is-size-7 is-italic last-viewed";
+        lastViewed.innerText = `Read on ${month} ${day} ${year} `;
+        lastViewed.className = "is-size-6 is-italic last-viewed has-text-dark";
 
         let li =  document.createElement("li");
         li.appendChild(topic);
         li.appendChild(title);
-        li.appendChild(content);
+        // li.appendChild(content);
         li.appendChild(lastViewed);
         li.appendChild(link);
 

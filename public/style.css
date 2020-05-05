@@ -105,3 +105,12 @@ body {
 #recent-articles{
     font-size: 1rem;
 }
+.periodical, .author, .article-date {
+    margin-right: 10px;
+}
+.article-content {
+    margin-bottom: 10px;
+}
+.article-title {
+    line-height: 37px;
+}
