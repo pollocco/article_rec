@@ -45,6 +45,15 @@ function makeUserArticleHistory(response){
     // getUserTopics(checkboxes);
 }
 
+function makeNoHistory(){
+    let noHistory = document.createElement("span");
+    noHistory.innerHTML = 'You have no history of read articles. You should read more. <a href="/">Go to articles</a>';
+    noHistory.className = "is-size-6 has-text-dark";
+
+    var userArticleHistoryList = document.querySelector('#userArticleHistoryList');
+    userArticleHistoryList.appendChild(noHistory);
+}
+
 function getUserArticlesHistory(){
     var req = new XMLHttpRequest();
     req.open("GET", "/api/getUserArticlesHistory");
