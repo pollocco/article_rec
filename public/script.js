@@ -116,10 +116,10 @@ function displayNoArticles(){
     pencilIcon.id = "noteIcon"
     pencilIcon.className = "subtitle is-6"
     pencilIcon.innerText = "📝"
-    pencilIcon.className = "icon column is-centered is-large" 
+    pencilIcon.className = "icon column is-centered is-large"
 
     pencilIconCol.appendChild(pencilIcon)
-    
+
     articleDivPara.appendChild(articleDivParaSub)
     articleDivPara.appendChild(pencilIconCol)
     articleDiv.appendChild(articleDivPara)
@@ -295,25 +295,51 @@ function makeTopicArticles(response){
     else{
         for(i=0; i<response.length; i++){
             let listItem = document.createElement('li');
-            let articleTitle = document.createElement('p')
 
-            articleTitle.className = "title is-5"
+            let topic = document.createElement("span");
+            topic.innerText = response[i].topic;
+            topic.className = "is-size-7 is-uppercase is-block";
+            listItem.appendChild(topic);
+
+            let articleTitle = document.createElement('p')
+            articleTitle.className = "article-title is-size-5 has-text-weight-bold has-text-dark"
             articleTitle.innerText = response[i].title
             listItem.appendChild(articleTitle)
 
-            let articleDate = document.createElement('p');
-            articleDate.style.fontFamily = "'EB Garamond', Georgia, Times, serif"
-            let articleDateText = document.createElement('em');
-            articleDateText.innerText = response[i].date.substring(0, 10)
-            articleDate.appendChild(articleDateText)
-            listItem.appendChild(articleDate);
-
             let articleContent = document.createElement('p');
-            articleContent.className = "subtitle is-6"
-            articleContent.innerText = response[i].content
+            articleContent.className = "article-content is-size-6 has-text-grey-dark"
+            articleContent.innerText = response[i].content;
             listItem.appendChild(articleContent)
 
-            let readButton = document.createElement('a')
+            let periodical = document.createElement("a");
+            periodical.innerText = response[i].periodicalName;
+            periodical.href = response[i].periodicalUrl;
+            periodical.target = '_blank';
+            periodical.className = "periodical is-size-6 has-text-dark";
+            listItem.appendChild(periodical);
+
+            let author = document.createElement("span");
+            author.innerText = ` ${response[i].firstName} ${response[i].lastName}`;
+            author.className = "author is-size-6 has-text-dark";
+            listItem.appendChild(author);
+
+            let articleDate = document.createElement('span');
+            articleDate.style.fontFamily = "'EB Garamond', Georgia, Times, serif";
+            articleDate.className ="article-date is-size-6 has-text-dark";
+            // let articleDateText = document.createElement('span');
+            let date = new Date(response[i].date)
+
+            let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
+            let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
+            let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
+
+            articleDate.innerText = `${month} ${day} ${year} `;
+            // articleDate.innerText = response[i].date.substring(0, 10)
+            // articleDate.appendChild(articleDateText)
+            listItem.appendChild(articleDate);
+
+
+            let readButton = document.createElement('a');
             readButton.style.paddingRight = "20px"
             readButton.url = response[i].url
             readButton.articleId = response[i].articleId
@@ -321,7 +347,7 @@ function makeTopicArticles(response){
                 window.open(readButton.url, '__blank')
                 toggleUserArticle(readButton)
             })
-            readButton.innerText = "Read"
+            readButton.innerHTML = 'Read <i class="fas fa-share"></i>';
             listItem.appendChild(readButton);
 
             let listItemDiv = document.createElement("div");
@@ -331,12 +357,12 @@ function makeTopicArticles(response){
             list.appendChild(listItemDiv)
         }
         var articleList = document.querySelector('#articleList')
-        if(articleList.hasChildNodes()){
+        if(articleList && articleList.hasChildNodes()){
             for(i=0; i<articleList.children.length;i++){
                 articleList.removeChild(articleList.children[i])
             }
+            articleList.appendChild(list);
         }
-        articleList.appendChild(list)
     }
 }
 
