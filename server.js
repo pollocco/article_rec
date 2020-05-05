@@ -33,6 +33,11 @@ app.use(function(req, res, next){
 
 var router = express.Router();
 
+app.get('/index', function(req, res){
+    var context = {}
+    res.render('index', context)
+});
+
 app.get('/', function(req, res){
     var context = {}
     if(req.session.loggedin){
