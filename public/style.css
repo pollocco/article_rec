@@ -6,6 +6,11 @@ body {
     background-color: rgb(254, 254, 255);
 }
 
+.sidebarBlurb{
+    font-size: 0.8rem;
+    font-weight: lighter !important;
+}
+
 
 
 #wizardAvatar{

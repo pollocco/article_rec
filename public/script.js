@@ -163,7 +163,7 @@ function toggleUserArticle(likeButton){
             var response = JSON.parse(req.responseText);
             console.log(response)
             if(response.length > 0){
-                getUserArticlesHistory();
+                getUserArticlesHistorySidebar();
             }
         }
         else{
@@ -215,21 +215,27 @@ function makeUserArticleHistorySidebar(response){
 
         let content = document.createElement("span");
         content.innerText = response[i].content.substr(0,100) + " ... ";
-        content.className = "content";
+        content.className = "content sidebarBlurb";
+        content.innerHTML += "<br/>"
 
         let link = document.createElement("a");
-        link.innerHTML = 'Read Again <i class="fas fa-share"></i>';
+        link.innerHTML = '<br/>Read Again <i class="fas fa-share"></i>';
         link.href = response[i].url;
         link.target = '_blank';
 
         let lastViewed = document.createElement("span");
-        let date = new Date(response[i].lastViewed)
 
-        let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
+        // "date value is not finite in DateTimeFormat.format()"
+        //
+        //let date = new Date(response[i].lastViewed)
+        // 
+        /* let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
         let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
-        let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
+        let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date) */
 
-        lastViewed.innerText = `Read: ${month} ${day} ${year} `;
+        let date = response[i].lastViewed.substr(0, 10)
+
+        lastViewed.innerText = `Read: ${date} `;
         lastViewed.className = "last-viewed";
 
         let li =  document.createElement("li");
@@ -241,6 +247,11 @@ function makeUserArticleHistorySidebar(response){
         ul.appendChild(li);
     }
     var userArticleHistoryList = document.querySelector('#recent-articles');
+    if(userArticleHistoryList && userArticleHistoryList.hasChildNodes()){
+        for(i=0; i<userArticleHistoryList.children.length;i++){
+            userArticleHistoryList.removeChild(userArticleHistoryList.children[i])
+        }
+    }
     userArticleHistoryList.appendChild(ul);
     // getUserTopics(checkboxes);
 }
@@ -326,17 +337,17 @@ function makeTopicArticles(response){
             let articleDate = document.createElement('span');
             articleDate.style.fontFamily = "'EB Garamond', Georgia, Times, serif";
             articleDate.className ="article-date is-size-6 has-text-dark";
-            // let articleDateText = document.createElement('span');
-            let date = new Date(response[i].date)
+            let articleDateText = document.createElement('span');
+            //let date = new Date(response[i].date)
 
-            let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
-            let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
-            let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
+            //let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
+            //let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
+            //let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
 
-            articleDate.innerText = `${month} ${day} ${year} `;
-            // articleDate.innerText = response[i].date.substring(0, 10)
-            // articleDate.appendChild(articleDateText)
-            listItem.appendChild(articleDate);
+            //articleDate.innerText = `${month} ${day} ${year} `;
+            articleDate.innerText = response[i].date.substring(0, 10)
+            articleDateText.appendChild(articleDate)
+            listItem.appendChild(articleDateText);
 
 
             let readButton = document.createElement('a');

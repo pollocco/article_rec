@@ -38,6 +38,7 @@ app.get('/index', function(req, res){
     res.render('index', context)
 });
 
+
 app.get('/', function(req, res){
     var context = {}
     if(req.session.loggedin){
@@ -269,12 +270,12 @@ router.post('/toggleUserArticle', function(req, res, next){
         }
         else{
             if(result.length === 1){
-                mysql.pool.query('UPDATE UserArticles WHERE userId=? AND articleId=? SET lastViewed=?', [userArticle["userId"], userArticle["articleId"], userArticle["lastViewed"]], function(error, result){
+                mysql.pool.query('UPDATE UserArticles SET lastViewed=? WHERE userId=? AND articleId=?', [userArticle["lastViewed"], userArticle["userId"], userArticle["articleId"]], function(error, result){
                     if(error){
                         console.log(error)
                     }
                     else{
-                        mysql.pool.query('SELECT * FROM UserArticles WHERE userId=?', [userArticle["userId"]], function(error, result){
+                        mysql.pool.query('SELECT * FROM UserArticles WHERE userId=? ORDER BY UserArticles.lastViewed DESC', [userArticle["userId"]], function(error, result){
                             if(error){
                                 console.log(error)
                             }
@@ -291,7 +292,7 @@ router.post('/toggleUserArticle', function(req, res, next){
                         console.log(error)
                     }
                     else{
-                        mysql.pool.query('SELECT * FROM UserArticles WHERE userId=?', [userArticle["userId"]], function(error, result){
+                        mysql.pool.query('SELECT * FROM UserArticles WHERE userId=? ORDER BY UserArticles.lastViewed DESC', [userArticle["userId"]], function(error, result){
                             if(error){
                                 console.log(error)
                             }
@@ -316,7 +317,7 @@ router.post('/getTopicArticles', function(req, res, next){
     'JOIN Authors ON AuthorArticles.authorId = Authors.authorId ' +
     'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
     'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
-    'WHERE UserTopics.userId = ?', [userId], function(error, result){
+    'WHERE UserTopics.userId = ? ORDER BY Articles.date DESC', [userId], function(error, result){
         if(error){
             console.log(error)
         }
@@ -331,7 +332,7 @@ router.get('/getUserArticlesHistory', function(req, res, next){
     mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed, Topics.name as topic FROM Articles ' +
     'JOIN UserArticles ON Articles.articleId = UserArticles.articleId ' +
     'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
-    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId WHERE userId = ?', [userId], function(error, result){
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId WHERE userId = ? ORDER BY UserArticles.lastViewed DESC', [userId], function(error, result){
         if(error){
             console.log(error)
         }
