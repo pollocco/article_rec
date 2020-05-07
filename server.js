@@ -309,7 +309,7 @@ router.post('/toggleUserArticle', function(req, res, next){
 
 router.post('/getTopicArticles', function(req, res, next){
     var userId = req.body.userId;
-    mysql.pool.query('SELECT Articles.*, Topics.name as topic, Authors.*, Periodicals.name as periodicalName, Periodicals.url as periodicalUrl FROM Articles  ' +
+    mysql.pool.query('SELECT Articles.*, Topics.name as topic, Authors.*, Periodicals.name as periodicalName, Periodicals.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM Articles  ' +
     'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
     'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
     'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
@@ -318,6 +318,24 @@ router.post('/getTopicArticles', function(req, res, next){
     'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
     'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
     'WHERE UserTopics.userId = ? ORDER BY Articles.date DESC', [userId], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+})
+
+router.get('/getTopicArticleSources', function(req, res, next){
+    var userId = req.session.userId;
+    mysql.pool.query('SELECT count(Articles.articleId) as numberOfArticles, Periodicals.name as periodicalName, Periodicals.periodicalId as periodicalId FROM Articles  ' +
+    'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+    'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
+    'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
+    'WHERE UserTopics.userId = ? GROUP BY Periodicals.periodicalId ', [userId], function(error, result){
         if(error){
             console.log(error)
         }

@@ -11,11 +11,24 @@ body {
     font-weight: lighter !important;
 }
 
+#articleList{
+    align-items: stretch;
+    min-width: 100%;
+}
 
+#articleContainer{
+    min-width: 100%;
+}
 
 #wizardAvatar{
     font-size: 36px;
     cursor: pointer;
+}
+.progress:indeterminate{
+    animation-duration: 0.3s
+}
+#checkboxLoader{
+    max-width: 16px;
 }
 
 #noteIcon{
@@ -64,6 +77,10 @@ body {
     text-align: center;
     font-size: 120px;
     margin-bottom: 33px;
+}
+
+#articleList{
+    min-width: 100%;
 }
 .avatar-large .avatar{
     display: inline-block;

@@ -1,36 +1,72 @@
 {{#if isLoggedIn}}
-<span class="title column is-half is-offset-one-quarter titleText" >Article Recommender</span>
-<span class="subtitle column is-half is-offset-one-quarter subtitleText"><em>A project for CS 340 Intro to Databases, Oregon State University</em></span>
+<span class="title column is-half is-offset-one-quarter titleText">Article Recommender</span>
+<span class="subtitle column is-half is-offset-one-quarter subtitleText"><em>A project for CS 340 Intro to Databases,
+        Oregon State University</em></span>
 <section class="section">
     <div class="tile is-ancestor">
-        <div class="column is-2 is-centered">
+        <div class="columns">
+        <div class="column is-3">
             <div class="tile is-vertical">
                 <div class="tile is-parent">
-                    <div class="tile is-child box" id="topicsTile">
-                        <p class="title">My Topics</p>
-                        <p class="subtitle">Customize your list</p>
+                        <div class="tile is-child box" id="topicsTile">
+                        <p class="title">Topics</p>
+                        <p class="subtitle">Customize your interests</p>
                         <div class="table" id="myTopics"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="column is-9 is-centered">
+            <div class="tile is-vertical is-12">
+                <div class="tile is-parent">
+                    <div>
+                        <p class="panel-heading">Your List</p>
+                        
+                    <article class="is-child tile box" id="articleContainer">
+                         
+                        <div id="articleList">
+                        </div>
+                        <div class="is-child tile" id="pagination"></div>
+                        </div>
+                    </article>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="column is-7 is-centered">
-            <div class="tile is-vertical is-12">
-                    <div class="tile is-parent">
-                        <article class="is-child box tile" id="articleContainer">
-                            <div id="articleList">
-                            </div>
-                        </article>
-                    </div>
-            </div>
-        </div>
         <div class="column is-3 is-centered">
-            <div class="tile is-parent">
+<nav class="panel">
+                        <p class="panel-heading">
+                            Filter
+                        </p>
+                        <div class="panel-block">
+                            <p class="control has-icons-left">
+                                <input class="input" type="text" placeholder="Search">
+                                <span class="icon is-left">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                </span>
+                            </p>
+                        </div>
+                        <p class="panel-tabs">
+                            <a class="is-active">Sources</a>
+                            <a>Authors</a>
+                        </p>
+                        <div class="panel-block">
+                            <div class="table" id="periodicalFilter"></div>
+                        </div>
+                        <div class="panel-block">
+                            <button class="button is-link is-outlined is-fullwidth">
+                                Reset all filters
+                            </button>
+                        </div>
+                    </nav>
+                                                <div class="tile is-parent">
                 <article class="tile is-child box">
                     <p class="title">Recent Articles</p>
                     <div id="recent-articles"></div>
                 </article>
             </div>
+        </div>
         </div>
     </div>
     <script src="script.js"></script>
@@ -42,13 +78,17 @@
         <div class="tile is-vertical">
             <div class="tile is-parent">
                 <div class="tile is-child">
-                    <p class="title box titleText">Welcome to our project page<br/><span class="subtitle subtitleText"><em>CS 340, Intro to Databases</em></span></p>
-                    
+                    <p class="title box titleText">Welcome to our project page<br /><span
+                            class="subtitle subtitleText"><em>CS 340, Intro to Databases</em></span></p>
+
                 </div>
             </div>
             <div class="tile is-parent">
                 <div class="tile is-child">
-                    <p class="subtitle box">This website was built using Express-Handlebars. The database for the website was designed using DBeaver and written in MySQL. PhpMyAdmin was used for GUI access and maintenance (you know, when you have to delete everything). Bulma provides the wonderful CSS styling you see here before you.</p>
+                    <p class="subtitle box">This website was built using Express-Handlebars. The database for the
+                        website was designed using DBeaver and written in MySQL. PhpMyAdmin was used for GUI access and
+                        maintenance (you know, when you have to delete everything). Bulma provides the wonderful CSS
+                        styling you see here before you.</p>
                 </div>
             </div>
         </div>
@@ -60,7 +100,8 @@
                             <p><strong>Did you know?</strong></p>
                         </div>
                         <div class="message-body">
-                            <em class="subtitle is-5" style="font-family: 'EB Garamond'">We're the best article recommender there is.</em></p>
+                            <em class="subtitle is-5" style="font-family: 'EB Garamond'">We're the best article
+                                recommender there is.</em></p>
                             <p>Don't believe us? You probably shouldn't because this is an intro class</p>
                         </div>
                     </article>
