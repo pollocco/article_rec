@@ -19,7 +19,79 @@ function callServer(reqType, url, [responseCallback], loadAmount, loadMessage){
     req.send();
 }
 
-callServer("GET", "/api/getTopicArticleSources", [makePeriodicalFilter])
+function getResponse(req){
+  if(req.status >= 200 && req.status < 400){
+    var response = JSON.parse(req.responseText)
+    return response
+  }
+  else{
+    return console.log("Error! " + req.statusText)
+  }
+}
+
+function createServerRequest(reqType, url, myCallback, ...params){
+  var req = new XMLHttpRequest();
+  req.open(reqType, url, true);
+  if(params[1]){
+    req.setRequestHeader("Content-Type", "application/json");
+  }
+  req.addEventListener("load", function(){
+    response = getResponse(req)
+    myCallback(response, params)
+  })
+  req.send(params[1])
+}
+
+function toggleUserArticle(likeButton) {
+  var req = new XMLHttpRequest();
+  req.open("POST", "/api/toggleUserArticle", true);
+  req.setRequestHeader("Content-Type", "application/json");
+  req.addEventListener("load", function () {
+    if (req.status >= 200 && req.status < 400) {
+      var response = JSON.parse(req.responseText);
+      if (response.length > 0) {
+        callServer("GET", "/api/getUserArticlesHistory", [makeUserArticleHistorySidebar])
+      }
+    } else {
+      console.log("Error! " + req.statusText);
+    }
+  });
+  let jsonObj = {
+    articleId: likeButton.articleId,
+  };
+  req.send(JSON.stringify(jsonObj));
+  return;
+}
+
+function toggleUserTopic(checkbox) {
+  var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
+  checkbox.cell.replaceChild(loader, checkbox)
+  let jsonObj = {
+    topicId: checkbox.topicId,
+  };
+  createServerRequest("POST", "/api/toggleTopic", function(){
+    checkbox.cell.replaceChild(checkbox, loader)
+      checkbox.checked = !checkbox.checked;
+      if (response.length > 0) {
+        getTopicArticles(response);
+      } else {
+        displayNoArticles();
+      }
+  }, checkbox, JSON.stringify(jsonObj))
+  return;
+}
+
+function getUserTopics(checkboxes) {
+  setLoadingBar(30, "Fetching user topics...");
+  createServerRequest("GET", "/api/getUserTopics", function(){
+    if (response.length > 0) {
+      setUserBoxes(response, checkboxes);
+      getTopicArticles(response);
+  } else {
+      displayNoArticles();
+  }
+  }, checkboxes)
+}
 
 function makePeriodicalFilter(response){
     makeNode("Table", [{"className":"table is-child"}])
@@ -28,28 +100,26 @@ function makePeriodicalFilter(response){
     for (i = 0; i < response.length; i++) {
       let row = thead.insertRow();
       row.classList.add("periodicalRow");
-  
+
       let nameCell = row.insertCell();
-      
       let nameCellText = makeNode("label", [{"innerText":`${response[i].periodicalName}`}, {"for":response[i].periodicalName}])
       nameCell.appendChild(nameCellText);
 
       let numberOfArticles = row.insertCell();
       let numberOfArticlesText = makeNode("label", [{"innerText":`${response[i].numberOfArticles}`}])
       numberOfArticles.appendChild(numberOfArticlesText);
-  
+
       let checkboxCell = row.insertCell();
-  
-      let checkbox = makeNode("input", [{"type":"checkbox"}, {"cellText":nameCellText}, {"name":response[i].periodicalName}, {"id":response[i].periodicalId}, {"checked":"true"}, {"periodicalId":response[i].periodicalId}])
-  
+
+      let checkbox = makeNode("input", [{"type":"checkbox"}, {"cellText":nameCellText}, {"name":response[i].periodicalName}, {"id":response[i].periodicalId}, {"checked":"true"}, {"periodicalId":response[i].periodicalId}]);
+      
       checkbox.addEventListener("click", function () {
         togglePeriodical(checkbox);
       });
-  
+
       checkboxCell.appendChild(checkbox);
     }
     var periodicalFilter = clearAllAndReturn("#periodicalFilter");
-
     periodicalFilter.appendChild(periodicalTable);
 }
 
@@ -64,64 +134,28 @@ function setLoadingBar(progress, message){
 function makeTable(response) {
     setLoadingBar(15, "Organizing articles...");
     var checkboxes = [];
-    var topicsTable = document.createElement("Table");
+    var topicsTable = makeNode("Table", [{"className":"table is-child"}])
     let thead = topicsTable.createTHead();
     for (i = 0; i < response.length; i++) {
         let row = thead.insertRow();
         row.classList.add("topicRow");
-
         let cell = row.insertCell();
-        let cellText = document.createElement("label");
-        cellText.innerText = `${response[i].name}`;
+        let cellText = makeNode("label", [{"innerText":response[i].name}])
         cell.appendChild(cellText);
-
         let checkboxCell = row.insertCell();
-
-        let checkbox = document.createElement("input");
-        checkbox.cellText = cellText;
-        checkbox.cell = checkboxCell
-        checkbox.row = row
-        checkbox.name = `${response[i].name}`;
-        checkbox.topicId = `${response[i].topicId}`;
-        checkbox.setAttribute("type", "checkbox");
-
+        let checkbox = makeNode("input", [{"id":response[i].name}, {"cell":checkboxCell}, {"cellText":cellText}, 
+                                  {"topicId":response[i].topicId}, {"name":response[i].name}, {"type":"checkbox"}])
         checkbox.addEventListener("click", function () {
             event.preventDefault();
             toggleUserTopic(checkbox);
         });
-
-        checkbox.setAttribute("name", `${response[i].name}`);
-        checkbox.setAttribute("id", `${response[i].name}`);
-        cellText.setAttribute("for", `${response[i].name}`);
-
+        cellText.setAttribute("for", `${response[i].name}`)
         checkboxes.push(checkbox);
-
         checkboxCell.appendChild(checkbox);
     }
-    topicsTable.className = "table is-child";
     var myTopics = document.querySelector("#myTopics");
     myTopics.appendChild(topicsTable);
     getUserTopics(checkboxes);
-}
-
-function getUserTopics(checkboxes) {
-    setLoadingBar(30, "Fetching user topics...");
-    var req = new XMLHttpRequest();
-    req.open("GET", "/api/getUserTopics", true);
-    req.addEventListener("load", function () {
-        if (req.status >= 200 && req.status < 400) {
-        var response = JSON.parse(req.responseText);
-        if (response.length > 0) {
-            setUserBoxes(response, checkboxes);
-            getTopicArticles(response);
-        } else {
-            displayNoArticles();
-        }
-        } else {
-        console.log("Error! " + req.statusText);
-        }
-    });
-    req.send();
 }
 
 function setUserBoxes(response, checkboxes) {
@@ -135,97 +169,31 @@ function setUserBoxes(response, checkboxes) {
 }
 
 function makeLoadingBar(initial, message){
-    let articleList = document.querySelector("#articleList");
-    if (articleList.hasChildNodes()) {
-        for (i = 0; i < articleList.children.length; i++) {
-        articleList.removeChild(articleList.children[i]);
-        }
-    }
-    let loadStatusText = document.createElement('p')
+    let articleList = clearAllAndReturn("#articleList")
+    let loadStatusText = makeNode("p", [{"className":"subtitle"}, {"innerText":message}, {"id":"loadStatusText"}])
     let dummyText = makeDummyText()
-
-    loadStatusText.classList.add("subtitle")
-    loadStatusText.innerText = `${message}`
-    loadStatusText.id = "loadStatusText"
-
-    let loadingBarDiv = document.createElement('div')
-    loadingBarDiv.style.padding = "60px"
-    loadingBarDiv.className = "tile is-parent is-vertical box"
-
-    let loadingBar = document.createElement('progress');
-    loadingBar.id = "loadingBar"
-
-    loadingBar.classList.add("progress")
-    loadingBar.classList.add("title")
-
-    loadingBar.value = `${initial}`
-    loadingBar.textContent = `${initial}%`
-    loadingBar.max = "100"
-
-    loadingBarDiv.appendChild(loadingBar)
-    loadingBarDiv.appendChild(loadStatusText)
-    loadingBarDiv.appendChild(dummyText)
-
+    let loadingBarDiv = makeNode("div", [{"style":"padding: 60px;"}, {"className":"tile is-parent is-vertical box"}])
+    let loadingBar = makeNode("progress", [{"id":"loadingBar"}, {"className":"progress title"}, {"value":initial}, {"textContent":initial}, {"max":"100"}])
+    appendThese(loadingBarDiv, [loadingBar, loadStatusText, dummyText]);
     articleList.appendChild(loadingBarDiv)
-
     isLoadingBar = true;
 }
-console.log()
+
 function displayNoArticles() {
   let articleList = clearAllAndReturn("#articleList");
   isLoadingBar = false
-  
+
   let articleDiv = makeNode("div", [{"className":"tile is-parent is-vertical box"}, {"style":"padding: 60px; text-align: center;"}])
-  
   let articleDivPara = makeNode("p", [{"className":"title is-5"}, {"innerText":"We don't have any articles for you yet!"}])  
-
   let articleDivParaSub = makeNode("p", [{"className":"subtitle is-6"}, {"innerText":"Pick some topics to get started"}])
-
-  
   let pencilIconCol = makeNode("p", [{"className":"columns is-centered"}])
-
-  
   let pencilIcon = makeNode("icon", [{"id":"noteIcon"}, {"className":"icon column is-centered is-large"}, {"innerText":"📝"}])
-
   let dummyText = makeDummyText()
 
   pencilIconCol.appendChild(pencilIcon);
-
-  articleDivPara.appendChild(articleDivParaSub);
-  articleDivPara.appendChild(pencilIconCol);
-  articleDiv.appendChild(articleDivPara);
-  articleDiv.appendChild(dummyText)
-
+  appendThese(articleDivPara, [articleDivParaSub, pencilIconCol])
+  appendThese(articleDiv, [articleDivPara, dummyText])
   articleList.appendChild(articleDiv);
-}
-
-function toggleUserTopic(checkbox) {
-  var req = new XMLHttpRequest();
-  
-  var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
-  checkbox.cell.replaceChild(loader, checkbox)
-  req.open("POST", "/api/toggleTopic", true);
-  req.setRequestHeader("Content-Type", "application/json");
-  req.addEventListener("load", function () {
-    if (req.status >= 200 && req.status < 400) {
-      var response = JSON.parse(req.responseText);
-      checkbox.cell.replaceChild(checkbox, loader)
-      checkbox.checked = !checkbox.checked;
-      if (response.length > 0) {
-        getTopicArticles(response);
-      } else {
-        callServer("GET", "/api/getTopicArticleSources", [makePeriodicalFilter])
-        displayNoArticles();
-      }
-    } else {
-      console.log("Error! " + req.statusText);
-    }
-  });
-  let jsonObj = {
-    topicId: checkbox.topicId,
-  };
-  req.send(JSON.stringify(jsonObj));
-  return;
 }
 
 function togglePeriodical(checkbox){
@@ -247,27 +215,6 @@ function togglePeriodical(checkbox){
     }
 }
 
-function toggleUserArticle(likeButton) {
-  var req = new XMLHttpRequest();
-  req.open("POST", "/api/toggleUserArticle", true);
-  req.setRequestHeader("Content-Type", "application/json");
-  req.addEventListener("load", function () {
-    if (req.status >= 200 && req.status < 400) {
-      var response = JSON.parse(req.responseText);
-      if (response.length > 0) {
-        getUserArticlesHistorySidebar();
-      }
-    } else {
-      console.log("Error! " + req.statusText);
-    }
-  });
-  let jsonObj = {
-    articleId: likeButton.articleId,
-  };
-  req.send(JSON.stringify(jsonObj));
-  return;
-}
-
 
 function makeUserArticleHistorySidebar(response) {
   var ul = document.createElement("ul");
@@ -275,20 +222,13 @@ function makeUserArticleHistorySidebar(response) {
       return;
   }
   for (var i = 0; i < response.length; i++) {
-    
     let title = makeNode("span", [{"innerText":response[i].title}, {"className":"subtitle"}]);
-
     let linefeed = document.createElement("br");
     title.appendChild(linefeed);
-
-    
     let content = makeNode("span", [{"className":"content sidebarBlurb"}, {"innerHTML":"<br/>"}])
     content.innerText = response[i].content.substr(0, 100) + " ... ";
-
     let link = makeNode("a", [{"innerHTML":"<br/>Read Again <i class='fas fa-share'></i>"}, {"href":response[i].url}, {"target":"_blank"}])
-
     let lastViewed = document.createElement("span");
-
     // "date value is not finite in DateTimeFormat.format()"
     //
     let date = new Date(response[i].lastViewed);
@@ -298,15 +238,12 @@ function makeUserArticleHistorySidebar(response) {
         let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date) */
 
     //let date = response[i].lastViewed.substr(0, 10)
-
     lastViewed.innerText = `Read: ${date} `;
     lastViewed.className = "last-viewed";
 
     let li = document.createElement("li");
-    li.appendChild(title);
-    li.appendChild(content);
-    li.appendChild(lastViewed);
-    li.appendChild(link);
+    appendThese(li, [title, content, lastViewed, link])
+
 
     ul.appendChild(li);
   }
@@ -329,7 +266,6 @@ function clearAllAndReturn(query){
 
 function getTopicArticles(response) {
     makeLoadingBar(70, "Fetching articles...");
-
     var req = new XMLHttpRequest();
     req.open("POST", "/api/getTopicArticles", true);
     req.setRequestHeader("Content-Type", "application/json");
@@ -461,6 +397,12 @@ function paginate(response, pageSize){
   pageDiv.appendChild(pagNav)
 }
 
+function appendThese(node, childNodes){
+  for(i=0;i<childNodes.length;i++){
+    node.appendChild(childNodes[i])
+  }
+}
+
 function makeTopicArticles(response, amount, startingIndex) {
   setLoadingBar(90, "Generating list...");
 
@@ -468,76 +410,51 @@ function makeTopicArticles(response, amount, startingIndex) {
   if (response.length == 0) {
     displayNoArticles();
   } else {
+        let appender = []
         for (i = startingIndex; i < startingIndex + amount; i++) {
             let listItem = document.createElement("li");
             let topic = makeNode("span", [{"className":"is-size-7 is-uppercase is-block"}, {"innerText":response[i].topic}])
-            //let topic = document.createElement("span");
-            listItem.appendChild(topic);
-            
             let articleTitle = makeNode("p", [{"className":"article-title is-size-5 has-text-weight-bold has-text-dark"}, {"innerText":response[i].title}])
-            listItem.appendChild(articleTitle);
-
-            let articleContent = document.createElement("p");
-            articleContent.className = "article-content is-size-6 has-text-grey-dark";
-            articleContent.innerText = response[i].content;
-            listItem.appendChild(articleContent);
-
-            let periodical = document.createElement("a");
-            periodical.innerText = response[i].periodicalName;
-            periodical.href = response[i].periodicalUrl;
-            periodical.target = "_blank";
-            periodical.className = "periodical is-size-6 has-text-dark";
-            listItem.appendChild(periodical);
-
-            let author = document.createElement("span");
+            let articleContent = makeNode("p", [{"className":"article-content is-size-6 has-text-grey-dark"}, {"innerText":response[i].content}])
+            let periodical = makeNode("a", [{"innerText":response[i].periodicalName}, {"href":response[i].periodicalUrl}, {"target":"_blank"}, {"className":"periodical is-size-6 has-text-dark"}])
+            
+            let author = makeNode("span", [{"className":"author is-size-6 has-text-dark"}])
             author.innerText = ` ${response[i].firstName} ${response[i].lastName}`;
-            author.className = "author is-size-6 has-text-dark";
-            listItem.appendChild(author);
-
-            let articleDate = document.createElement("span");
-            articleDate.style.fontFamily = "'EB Garamond', Georgia, Times, serif";
-            articleDate.className = "article-date is-size-6 has-text-dark";
-            let articleDateText = document.createElement("span");
             //let date = new Date(response[i].date)
-
             //let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
             //let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
             //let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
-
             //articleDate.innerText = `${month} ${day} ${year} `;
+
+            let articleDate = makeNode("span", [{"style":"font-family: 'EB Garamond', Georgia, Times, serif;"}, {"className":"article-date is-size-6 has-text-dark"}])
+            let articleDateText = document.createElement("span");
             articleDate.innerText = response[i].date.substring(0, 10);
             articleDateText.appendChild(articleDate);
-            listItem.appendChild(articleDateText);
-
-            let readButton = document.createElement("a");
-            readButton.style.paddingRight = "20px";
-            readButton.url = response[i].url;
-            readButton.articleId = response[i].articleId;
+            
+            let readButton = makeNode("a", [{"style":"padding-right: 20px;"}, {"url":response[i].url}, {"articleId":response[i].articleId}, {"innerHTML":"Read <i class='fas fa-share'></i>"}])
             readButton.addEventListener("click", function () {
                 window.open(readButton.url, "__blank");
                 toggleUserArticle(readButton);
+                callServer("GET", "/api/getUserArticlesHistory", [makeUserArticleHistorySidebar])
             });
-            readButton.innerHTML = 'Read <i class="fas fa-share"></i>';
-            listItem.appendChild(readButton);
-
-            let listItemDiv = document.createElement("div");
-            listItemDiv.className = "tile is-parent is-vertical box";
-            listItemDiv.id = "listItemDiv";
-            listItemDiv.periodicalId = response[0].periodicalId;
+           
+            appender.push(function(a, b, c, d, e, f, g){
+              return function(){appendThese(listItem, [a, b, c, d, e, f, g])}
+            }(topic, articleTitle, articleContent, periodical, author, articleDateText, readButton));
+            let listItemDiv = makeNode("div", [{"className":"tile is-parent is-vertical box"}, {"id":"listItemDiv"}, {"periodicalId":response[i].periodicalId}])
+            
             listItemDiv.appendChild(listItem);
             list.appendChild(listItemDiv);
         }
+        for(j=0; j<appender.length; j++){
+          appender[j]()
+        }
         let dummyText = makeDummyText()
-        let icon = document.createElement('icon')
-        iconCol = document.createElement('p')
-        iconCol.className = "columns tile is-parent"
-        iconCol.id = "iconCol"
-        icon.innerText = "📰";
-        icon.className = "icon column is-centered is-large";
-        icon.id = "noteIcon"
+        let icon = makeNode("icon", [{"innerText":"📰"}, {"className":"icon column is-centered is-large"}, {"id":"noteIcon"}])
+        let iconCol = makeNode("p", [{"className":"columns tile is-parent"}, {"id":"iconCol"}])
+
         iconCol.appendChild(icon)
-        list.appendChild(iconCol)
-        list.appendChild(dummyText)
+        appendThese(list, [iconCol, dummyText])
         var articleList = clearAllAndReturn("#articleList");
         articleList.appendChild(list);   
     }
@@ -551,6 +468,7 @@ function makeDummyText(){                               // Invisible text to pre
     return dummyText
 }
 
+callServer("GET", "/api/getTopicArticleSources", [makePeriodicalFilter])
 callServer("GET", "/api/getTopics", [makeTable], 10, "Booting up the mainframe...");
 callServer("GET", "/api/getUserArticlesHistory", [makeUserArticleHistorySidebar])
 
