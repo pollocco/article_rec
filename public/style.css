@@ -16,8 +16,18 @@ body {
     min-width: 100%;
 }
 
+#dummyText{
+    font-size: 0.25rem !important;
+    align-items: stretch;
+    min-width: 100%;
+}
+
 #articleContainer{
     min-width: 100%;
+}
+
+ul{
+    transition: all 2s ease;
 }
 
 #wizardAvatar{
@@ -27,6 +37,7 @@ body {
 .progress:indeterminate{
     animation-duration: 0.3s
 }
+
 #checkboxLoader{
     max-width: 16px;
 }

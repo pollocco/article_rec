@@ -21,23 +21,8 @@ function callServer(reqType, url, [responseCallback], loadAmount, loadMessage){
 
 callServer("GET", "/api/getTopicArticleSources", [makePeriodicalFilter])
 
-function getArticleSourceList(){
-    var req = new XMLHttpRequest();
-    req.open("GET", "/api/getTopicArticleSources", true);
-    req.addEventListener("load", function () {
-      if (req.status >= 200 && req.status < 400) {
-        var response = JSON.parse(req.responseText);
-        console.log(response);
-        makePeriodicalFilter(response);
-      } else {
-        console.log("Error! " + req.statusText);
-      }
-    });
-    req.send();
-}
-
 function makePeriodicalFilter(response){
-    var checkboxes = [];
+    makeNode("Table", [{"className":"table is-child"}])
     var periodicalTable = document.createElement("Table");
     let thead = periodicalTable.createTHead();
     for (i = 0; i < response.length; i++) {
@@ -45,38 +30,24 @@ function makePeriodicalFilter(response){
       row.classList.add("periodicalRow");
   
       let nameCell = row.insertCell();
-      let nameCellText = document.createElement("label");
-      nameCellText.innerText = `${response[i].periodicalName}`;
+      
+      let nameCellText = makeNode("label", [{"innerText":`${response[i].periodicalName}`}, {"for":response[i].periodicalName}])
       nameCell.appendChild(nameCellText);
 
       let numberOfArticles = row.insertCell();
-      let numberOfArticlesText = document.createElement("label");
-      numberOfArticlesText.innerText = `${response[i].numberOfArticles}`
+      let numberOfArticlesText = makeNode("label", [{"innerText":`${response[i].numberOfArticles}`}])
       numberOfArticles.appendChild(numberOfArticlesText);
   
       let checkboxCell = row.insertCell();
   
-      let checkbox = document.createElement("input");
-      checkbox.cellText = nameCellText;
-      checkbox.name = `${response[i].periodicalName}`;
-      checkbox.checked = true
-      checkbox.periodicalId = `${response[i].periodicalId}`;
-      checkbox.setAttribute("type", "checkbox");
+      let checkbox = makeNode("input", [{"type":"checkbox"}, {"cellText":nameCellText}, {"name":response[i].periodicalName}, {"id":response[i].periodicalId}, {"checked":"true"}, {"periodicalId":response[i].periodicalId}])
   
       checkbox.addEventListener("click", function () {
         togglePeriodical(checkbox);
       });
   
-      checkbox.setAttribute("name", `${response[i].periodicalName}`);
-      checkbox.setAttribute("id", `${response[i].periodicalId}`);
-      nameCellText.setAttribute("for", `${response[i].periodicalName}`);
-  
-      checkboxes.push(checkbox);
-  
       checkboxCell.appendChild(checkbox);
     }
-    periodicalTable.className = "table is-child";
-
     var periodicalFilter = clearAllAndReturn("#periodicalFilter");
 
     periodicalFilter.appendChild(periodicalTable);
@@ -199,31 +170,22 @@ function makeLoadingBar(initial, message){
 
     isLoadingBar = true;
 }
-
+console.log()
 function displayNoArticles() {
   let articleList = clearAllAndReturn("#articleList");
   isLoadingBar = false
-  let articleDiv = document.createElement("div");
-  articleDiv.className = "tile is-parent is-vertical box";
-  articleDiv.style.textAlign = "center";
-  articleDiv.style.padding = "60px";
+  
+  let articleDiv = makeNode("div", [{"className":"tile is-parent is-vertical box"}, {"style":"padding: 60px; text-align: center;"}])
+  
+  let articleDivPara = makeNode("p", [{"className":"title is-5"}, {"innerText":"We don't have any articles for you yet!"}])  
 
-  let articleDivPara = document.createElement("p");
-  articleDivPara.className = "title is-5";
-  articleDivPara.innerText = "We don't have any articles for you yet!";
+  let articleDivParaSub = makeNode("p", [{"className":"subtitle is-6"}, {"innerText":"Pick some topics to get started"}])
 
-  let articleDivParaSub = document.createElement("p");
-  articleDivParaSub.className = "subtitle is-6";
-  articleDivParaSub.innerText = "Pick some topics to get started";
+  
+  let pencilIconCol = makeNode("p", [{"className":"columns is-centered"}])
 
-  let pencilIconCol = document.createElement("p");
-  pencilIconCol.className = "columns is-centered";
-
-  let pencilIcon = document.createElement("icon");
-  pencilIcon.id = "noteIcon";
-  pencilIcon.className = "subtitle is-6";
-  pencilIcon.innerText = "📝";
-  pencilIcon.className = "icon column is-centered is-large";
+  
+  let pencilIcon = makeNode("icon", [{"id":"noteIcon"}, {"className":"icon column is-centered is-large"}, {"innerText":"📝"}])
 
   let dummyText = makeDummyText()
 
@@ -239,11 +201,8 @@ function displayNoArticles() {
 
 function toggleUserTopic(checkbox) {
   var req = new XMLHttpRequest();
-  var loader = document.createElement('progress')
-  loader.className = "progress is-small is-dark";
-  loader.max = "100"
-  loader.id = "checkboxLoader"
-  loader.textContent = "30%";
+  
+  var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
   checkbox.cell.replaceChild(loader, checkbox)
   req.open("POST", "/api/toggleTopic", true);
   req.setRequestHeader("Content-Type", "application/json");
@@ -255,6 +214,7 @@ function toggleUserTopic(checkbox) {
       if (response.length > 0) {
         getTopicArticles(response);
       } else {
+        callServer("GET", "/api/getTopicArticleSources", [makePeriodicalFilter])
         displayNoArticles();
       }
     } else {
@@ -315,21 +275,17 @@ function makeUserArticleHistorySidebar(response) {
       return;
   }
   for (var i = 0; i < response.length; i++) {
-    let title = document.createElement("span");
-    title.innerText = response[i].title;
+    
+    let title = makeNode("span", [{"innerText":response[i].title}, {"className":"subtitle"}]);
+
     let linefeed = document.createElement("br");
     title.appendChild(linefeed);
-    title.className = "subtitle";
 
-    let content = document.createElement("span");
+    
+    let content = makeNode("span", [{"className":"content sidebarBlurb"}, {"innerHTML":"<br/>"}])
     content.innerText = response[i].content.substr(0, 100) + " ... ";
-    content.className = "content sidebarBlurb";
-    content.innerHTML += "<br/>";
 
-    let link = document.createElement("a");
-    link.innerHTML = '<br/>Read Again <i class="fas fa-share"></i>';
-    link.href = response[i].url;
-    link.target = "_blank";
+    let link = makeNode("a", [{"innerHTML":"<br/>Read Again <i class='fas fa-share'></i>"}, {"href":response[i].url}, {"target":"_blank"}])
 
     let lastViewed = document.createElement("span");
 
@@ -381,7 +337,7 @@ function getTopicArticles(response) {
         if (req.status >= 200 && req.status < 400) {
             setLoadingBar(90)
             var response = JSON.parse(req.responseText);
-            paginate(response);
+            paginate(response, 5);
             callServer("GET", "/api/getTopicArticleSources", [makePeriodicalFilter])
         } else {
             console.log("Error! " + req.statusText);
@@ -421,80 +377,81 @@ function makeNode(elementType, properties){
     return element
 }
 
+function show(page){
+  if(page.style.visibility == "hidden"){
+    page.style.visibility = "visible"
+  }
+}
+
+function hide(page){
+  if(page.style.visibility == "visible"){
+    page.style.visibility = "hidden"
+  }
+}
 
 
-
-function paginate(response){
+function paginate(response, pageSize){
   var indexCount = 0
   var pagNav = makeNode("nav", [{"className":"pagination"}])
   var nextPage = makeNode("a", [{"textContent":"Next"}, {"className":"pagination-next"}])
-
-  var prevPage = document.createElement('a')
-  prevPage.className = "pagination-previous"
-  prevPage.textContent = "Previous"
-  prevPage.style.visibility = "hidden"
-
-  if(indexCount + 10 <= response.length){
-    makeTopicArticles(response, 10, indexCount)
-      indexCount += 10;
+  var prevPage = makeNode("a", [{"className":"pagination-previous"}, {"textContent":"Previous"}])
+  prevPage.style.visibility = "hidden";
+  nextPage.style.visibility = "visible";
+  if(response.length == 0){
+    hide(nextPage)
+    hide(prevPage)
+  }
+  if(indexCount + pageSize < response.length){
+    makeTopicArticles(response, pageSize, indexCount)
+      indexCount += pageSize;
     }
   else{
     makeTopicArticles(response, response.length, indexCount)
     indexCount += response.length
+    hide(nextPage)
   }
   nextPage.onclick = function(){
     isLoadingBar = false
-    if(indexCount + 10 <= response.length){
-      makeTopicArticles(response, 10, indexCount);
-      indexCount += 10;
+    if(indexCount + pageSize <= response.length){
+      makeTopicArticles(response, pageSize, indexCount);
+      indexCount += pageSize;
       if(indexCount == response.length){
-        nextPage.style.visibility = "hidden"
+        hide(nextPage)
       }
     }
     else{
-      let amount = response.length % 10
-      makeTopicArticles(response, amount, indexCount)
-      nextPage.style.visibility = "hidden"
-      indexCount += amount
+      let remaining = response.length % pageSize
+      makeTopicArticles(response, remaining, indexCount)
+      hide(nextPage)
+      indexCount += remaining
     }
-    console.log(indexCount)
-    console.log(response.length)
-    if(indexCount - 10 >= 0){
-      if(prevPage.style.visibility == "hidden"){
-        prevPage.style.visibility = "visible"
-      }
+    if(indexCount - pageSize >= 0){
+      show(prevPage)
       prevPage.onclick = function(){
         isLoadingBar = false
-        if(indexCount % 10 == 0){
-          indexCount -= 20;
-          makeTopicArticles(response, 10, indexCount)
-          indexCount += 10;
+        if(indexCount % pageSize == 0){
+          indexCount -= pageSize * 2;
+          makeTopicArticles(response, pageSize, indexCount)
+          indexCount += pageSize;
         }
         else{
-          indexCount = indexCount - 10 - (indexCount % 10)
-          makeTopicArticles(response, 10, indexCount)
-          indexCount += 10;
+          indexCount = indexCount - pageSize - (indexCount % pageSize)
+          makeTopicArticles(response, pageSize, indexCount)
+          indexCount += pageSize;
         }
-        if(indexCount + 10 <= response.length){
-          if(nextPage.style.visibility == "hidden"){
-            nextPage.style.visibility = "visible"
-          }
+        if(indexCount + pageSize <= response.length){
+          show(nextPage)
         }
-        if(response.length % 10 != 0 && indexCount < response.length){
-          if(nextPage.style.visibility == "hidden"){
-            nextPage.style.visibility = "visible"
-          }
+        if(response.length % pageSize != 0 && indexCount < response.length){
+          show(nextPage)
         }
-        if(indexCount - 10 <= 0){
-          if(prevPage.style.visibility == "visible"){
-            prevPage.style.visibility = "hidden"
-          }
+        if(indexCount - pageSize <= 0){
+          hide(prevPage)
         }
-        console.log(indexCount)
       }
     }
     else{
-      prevPage.style.visibility = "hidden"
+      hide(prevPage)
     }
   }
   pageDiv = clearAllAndReturn('#pagination')
@@ -516,11 +473,8 @@ function makeTopicArticles(response, amount, startingIndex) {
             let topic = makeNode("span", [{"className":"is-size-7 is-uppercase is-block"}, {"innerText":response[i].topic}])
             //let topic = document.createElement("span");
             listItem.appendChild(topic);
-
-            let articleTitle = document.createElement("p");
-            articleTitle.className =
-                "article-title is-size-5 has-text-weight-bold has-text-dark";
-            articleTitle.innerText = response[i].title;
+            
+            let articleTitle = makeNode("p", [{"className":"article-title is-size-5 has-text-weight-bold has-text-dark"}, {"innerText":response[i].title}])
             listItem.appendChild(articleTitle);
 
             let articleContent = document.createElement("p");
@@ -580,7 +534,6 @@ function makeTopicArticles(response, amount, startingIndex) {
         iconCol.id = "iconCol"
         icon.innerText = "📰";
         icon.className = "icon column is-centered is-large";
-        icon.style.paddingBottom = "60px"
         icon.id = "noteIcon"
         iconCol.appendChild(icon)
         list.appendChild(iconCol)
