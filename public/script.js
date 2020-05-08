@@ -100,7 +100,8 @@ function makePeriodicalFilter(response){
       checkboxCell.appendChild(checkbox);
     }
     var periodicalFilter = clearAllAndReturn("#periodicalFilter");
-    periodicalFilter.appendChild(periodicalTable);
+    if(periodicalFilter){periodicalFilter.appendChild(periodicalTable);}
+    
 }
 
 function setLoadingBar(progress, message){

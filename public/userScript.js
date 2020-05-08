@@ -1,3 +1,92 @@
+async function getReq(url=''){
+    const response = await fetch(url)
+    return response.json()
+}
+
+
+function makeNode(elementType, properties){
+    let element = document.createElement(elementType);
+    for(m=0; m<properties.length; m++){
+        for(let prop in properties[m]){
+                element[prop] = properties[m][prop]
+        }
+    }
+    return element
+}
+
+async function getUserTopics(checkboxes) {
+    var response = await getReq('/api/getUserTopics')
+    setUserBoxes(response, checkboxes)
+  }
+
+function setUserBoxes(response, checkboxes) {
+for (i = 0; i < response.length; i++) {
+    for (j = 0; j < checkboxes.length; j++) {
+    if (checkboxes[j].topicId == response[i].topicId) {
+        checkboxes[j].checked = true;
+    }
+    }
+}
+}
+
+async function toggleUserTopic(checkbox, checkboxes) {
+    var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, 
+      {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
+    checkbox.cell.replaceChild(loader, checkbox)
+    let jsonObj = {
+      topicId: checkbox.topicId,
+    };
+    var response = await postReq("/api/toggleTopic", jsonObj)
+    checkbox.cell.replaceChild(checkbox, loader)
+    checkbox.checked = !checkbox.checked
+    setUserBoxes(response, checkboxes)
+    return;
+  }
+
+async function postReq(url='', data={}){
+    const response = await fetch(url,{
+        method: "POST",
+        headers:{
+        'Content-Type':'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    return response.json()
+}
+
+function makeTable(response) {
+    var checkboxes = [];
+    var topicsTable = makeNode("Table", [{"className":"table is-child"}])
+    let thead = topicsTable.createTHead();
+    for (i = 0; i < response.length; i++) {
+        let row = thead.insertRow();
+        row.classList.add("topicRow");
+
+        let cell = row.insertCell();
+
+        let cellText = makeNode("label", [{"innerText":response[i].name}])
+        cell.appendChild(cellText);
+
+        let checkboxCell = row.insertCell();
+        let checkbox = makeNode("input", [{"id":response[i].name}, {"cell":checkboxCell}, {"cellText":cellText}, 
+                                  {"topicId":response[i].topicId}, {"articleId":response[i].articleId}, {"name":response[i].name}, {"type":"checkbox"}])
+
+        checkbox.addEventListener("click", function () {
+            event.preventDefault();
+            toggleUserTopic(checkbox, checkboxes);
+        });
+
+        cellText.setAttribute("for", `${response[i].name}`)
+
+        checkboxes.push(checkbox);
+
+        checkboxCell.appendChild(checkbox);
+    }
+    var myTopics = document.querySelector("#myTopics");
+    myTopics.appendChild(topicsTable);
+    getUserTopics(checkboxes);
+}
+
 
 function makeUserArticleHistory(response){
     var ul = document.createElement("ul");
@@ -75,5 +164,10 @@ function getUserArticlesHistory(){
     req.send();
 }
 
+document.addEventListener("DOMContentLoaded", async function(){
+    var topics = await getReq("/api/getTopics")
+    makeTable(topics)
+    getUserArticlesHistory()
+  })
 
-getUserArticlesHistory();
+
