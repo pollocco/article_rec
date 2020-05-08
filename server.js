@@ -256,7 +256,7 @@ router.post('/toggleTopic', function(req, res, next){
 })
 
 router.post('/toggleUserArticle', function(req, res, next){
-    var dateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    var dateTime = new Date();
     var articleId = req.body.articleId;
     var userArticle = {
         "userId": req.session.userId,
@@ -307,8 +307,8 @@ router.post('/toggleUserArticle', function(req, res, next){
     })
 })
 
-router.post('/getTopicArticles', function(req, res, next){
-    var userId = req.body.userId;
+router.get('/getTopicArticles', function(req, res, next){
+    var userId = req.session.userId;
     mysql.pool.query('SELECT Articles.*, Topics.name as topic, Authors.*, Periodicals.name as periodicalName, Periodicals.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM Articles  ' +
     'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
     'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
@@ -343,6 +343,35 @@ router.get('/getTopicArticleSources', function(req, res, next){
             res.send(result)
         }
     })
+})
+
+router.post('/getTopicArticlesFiltered', function(req, res, next){
+    console.log("hello!")
+    var periodicalIds = req.body.periodicalIds
+    var articleIds = req.body.articleIds
+    if(periodicalIds.length == 0 || articleIds.length == 0){
+        var empty = []
+        res.send(empty)
+        next()
+    }
+    else{
+            mysql.pool.query('SELECT DISTINCT Articles.*, Topics.name as topic, Authors.*, Periodicals.name as periodicalName, Periodicals.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM Articles ' +
+        'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+        'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
+        'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+        'JOIN AuthorArticles ON Articles.articleId = AuthorArticles.articleId ' +
+        'JOIN Authors ON AuthorArticles.authorId = Authors.authorId ' +
+        'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
+        'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
+        'WHERE Periodicals.periodicalId IN (?) AND Articles.articleId IN (?) ORDER BY Articles.date DESC', [periodicalIds, articleIds], function(error, result){
+            if(error){
+                console.log(error)
+            }
+            else{
+                res.send(result)
+            }
+        })
+    }
 })
 
 router.get('/getUserArticlesHistory', function(req, res, next){
