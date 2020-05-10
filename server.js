@@ -524,8 +524,6 @@ router.post('/addTopic', function(req, res, next){
 })
 
 router.post('/getTopicArticlesFiltered', function(req, res, next){
-    console.log("hello!")
-    console.log(req.body)
     var periodicalIds = req.body.periodicalIds
     var articleIds = req.body.articleIds
     var authorIds = req.body.authorIds

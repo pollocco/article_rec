@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async function(){
   makeFilters(sources)
   makeLoadingBar(10, "Booting up the mainframe...")
   var topics = await getReq("/api/getTopics")
-  var checkboxes = makeTable(topics)
+  var checkboxes = makeTopicsTable(topics)
   getUserTopics(checkboxes)
   var userHistory = await getReq("/api/getUserArticlesHistory")
   makeUserArticleHistorySidebar(userHistory)
@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", async function(){
 
 async function getTopicArticlesWithConcatTopics(){
   var allTopicsResponse = await getReq('/api/getTopicArticlesWithConcatTopics')
-  console.log(allTopicsResponse)
 }
 
 async function postReq(url='', data={}){
@@ -86,9 +85,9 @@ async function toggleUserTopic(checkbox) {
   return;
 }
 
-function switchToAuthorFilter(authorTable, periodicalTable){
-  var sourcesTab = document.querySelector("#sourcesTab")
-  sourcesTab.addEventListener("click", function(){
+function switchToAuthorFilter(authorTable, periodicalTable){                  // Switches to the author filter table. Keeps the checkboxes
+  var sourcesTab = document.querySelector("#sourcesTab")                      // for the periodical filter so that the filtering still
+  sourcesTab.addEventListener("click", function(){                            // reflects both periodicals and authors.
     switchToPeriodicalFilter(periodicalTable, authorTable)
   })
   if(sourcesTab.classList.contains("is-active")){
@@ -99,12 +98,12 @@ function switchToAuthorFilter(authorTable, periodicalTable){
   periodicalFilter.replaceChild(authorTable, periodicalFilter.children[0])
 }
 
-function switchToPeriodicalFilter(periodicalTable, authorTable){
+function switchToPeriodicalFilter(periodicalTable, authorTable){                // Switches back to the periodical filter. Same as above, pretty much.
   var authorsTab = document.querySelector("#authorsTab")
   authorsTab.addEventListener("click", function(){
     switchToAuthorFilter(authorTable, periodicalTable)
   })
-  if(authorsTab.classList.contains("is-active")){
+  if(authorsTab.classList.contains("is-active")){                               // This is the highlight that gets applied to the tabs at the top of the panel.
     authorsTab.classList.remove("is-active")
   }
   sourcesTab.classList.add("is-active")
@@ -112,7 +111,7 @@ function switchToPeriodicalFilter(periodicalTable, authorTable){
   periodicalFilter.replaceChild(periodicalTable, periodicalFilter.children[0])
 }
 
-async function togglePeriodical(checkboxes, checkbox, authorCheckboxes){
+async function toggleFilters(checkboxes, checkbox, authorCheckboxes){
   makeLoadingBar(90, "Updating...")
   var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, 
     {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
@@ -130,19 +129,15 @@ async function togglePeriodical(checkboxes, checkbox, authorCheckboxes){
       periodicalIds.push(checkboxes[i].periodicalId)
     }
   }
-  console.log(authorIds)
   var topicArticles = await getReq("/api/getTopicArticlesWithConcatTopics")
-  console.log(topicArticles)
   for(i=0; i<topicArticles.length;i++){
     articleIds.push(topicArticles[i].articleId)
   }
-  console.log(articleIds)
   var jsonObj = {}
   jsonObj["periodicalIds"] = periodicalIds
   jsonObj["articleIds"] = articleIds
   jsonObj["authorIds"] = authorIds
   var response = await postReq("/api/getTopicArticlesFiltered", jsonObj)
-  console.log(response)
   setLoadingBar(99, "Almost there!")
   indexCount = 0;
   checkbox.cell.replaceChild(checkbox, loader)
@@ -159,9 +154,9 @@ async function togglePeriodical(checkboxes, checkbox, authorCheckboxes){
   }
 }
 
-async function makeFilters(response){
-    var checkboxes = []
-    checkboxes.response = response;
+async function makeFilters(response){                                     // This makes the author and periodical filter tables/checkboxes.
+    var checkboxes = []                                                   // Because they're dependent on each other, I wasn't able to get them to 
+    checkboxes.response = response;                                       // be initialized in separate functions without losing scope.
     var periodicalTable = document.createElement("Table");
     let thead = periodicalTable.createTHead();
     for (i = 0; i < response.length; i++) {
@@ -216,7 +211,7 @@ async function makeFilters(response){
           {"authorId":authors[x].authorId}]);}(i)
   
       authorCheckboxes[i].addEventListener("click", function (x) {
-            return function(){togglePeriodical(checkboxes, authorCheckboxes[x], authorCheckboxes)};
+            return function(){toggleFilters(checkboxes, authorCheckboxes[x], authorCheckboxes)};
           }(i));
   
       nameCellText.setAttribute("for", `${authors[i].authorFullName}`)
@@ -227,7 +222,7 @@ async function makeFilters(response){
 
     for(i=0;i<checkboxes.length;i++){
       checkboxes[i].addEventListener("click", function (x) {
-        return function(){togglePeriodical(checkboxes, checkboxes[x], authorCheckboxes)};
+        return function(){toggleFilters(checkboxes, checkboxes[x], authorCheckboxes)};
       }(i));
     }
 
@@ -242,7 +237,7 @@ async function makeFilters(response){
     
 }
 
-function setLoadingBar(progress, message){
+function setLoadingBar(progress, message){                                                  // Changes the loading bar message/value, if the loading bar is on-screen. 
     if(isLoadingBar){
       document.querySelector("#loadingBar").value = `${progress}`
       document.querySelector("#loadingBar").textContent = `${progress}%`
@@ -250,9 +245,9 @@ function setLoadingBar(progress, message){
     }
 }
 
-function makeTable(response) {
-    setLoadingBar(15, "Organizing articles...");
-    var checkboxes = [];
+function makeTopicsTable(response) {                                                       // Makes the topics table and returns the checkboxes for the topics.       
+    setLoadingBar(15, "Organizing articles...");                                           // Gets passed to getUserTopics(), or you can pass it to setUserBoxes
+    var checkboxes = [];                                                                   // to update the topic table and stop there (such as the case with sendNewTopic())
     var topicsTable = makeNode("Table", [{"className":"table is-child"}])
     let thead = topicsTable.createTHead();
     for (i = 0; i < response.length; i++) {
@@ -583,7 +578,7 @@ async function makeArticlesPage(response, amount, startingIndex) {    // WARNING
             let spanForNonUserTopics = makeNode("span",                         // This is the light-colored tags that show next to the user's tags. 
                 [{"articleId":response[i].articleId},                           
                 {"topic":response[i].topic.split('&&&')},                       // Topics are returned as GROUP_CONCAT(Topics.name SEPARATOR '&&&') 
-              {"className":"tag is-dark is-uppercase topicButton"},             //                                ['&&&' seemed like an unlikely enough three characters to use]
+              {"className":"tag is-dark is-uppercase topicButton"},             //                       ['&&&' seemed like an unlikely enough three characters to use]
             {"textContent":""}])
 
             spanForNonUserTopics.style.display = "none"                         // Not displayed by default to avoid ugly empty space.
@@ -662,8 +657,8 @@ async function openTopicPreview(button){
   var modalFooterButtonText = ""                                          
   var modalFooterButtonClass = ""                                         
 
-  if(button.classList.contains("is-dark") || button.classList.contains("is-success")){                               // Since /api/toggleTopic doesn't care about the state, we can just look at the color of the button
-    modalFooterButtonText = "Remove from My Topics";                      // to determine whether it's one of the user's topics.
+  if(button.classList.contains("is-dark") || button.classList.contains("is-success")){        // Since /api/toggleTopic doesn't care about the state, we can just look at the color of the button
+    modalFooterButtonText = "Remove from My Topics";                                          // to determine whether it's one of the user's topics.
     modalFooterButtonClass = "button is-danger";                          
   } else{
     modalFooterButtonText = "Add to My Topics";
@@ -678,7 +673,7 @@ async function openTopicPreview(button){
 
   let articleTable = makeNode("table", [{"className":"table"}])
 
-  for(i=0;i<singleTopicList.length;i++){                                  // Table of articles for the topic preview.
+  for(i=0;i<singleTopicList.length;i++){                                                        // Table of articles for the topic preview.
     let articleRow = articleTable.insertRow()
 
     let titleCell = articleRow.insertCell()
@@ -870,7 +865,7 @@ async function showAddTopic(button){                                        // U
     else{
       var topic = textInput.value
     }
-    sendTopic(topic, button)
+    sendNewTopic(topic, button)
     button.listItem.replaceChild(button, textInputDiv)
   })
 
@@ -878,7 +873,7 @@ async function showAddTopic(button){                                        // U
   button.listItem.replaceChild(textInputDiv, button)
 }
 
-async function sendTopic(topic, button){
+async function sendNewTopic(topic, button){
   let jsonObj = {
     "newTopic":topic,
     "articleId":button.articleId,
@@ -915,7 +910,7 @@ async function sendTopic(topic, button){
   var topics = await getReq("/api/getTopics")
   var userTopics = await getReq("/api/getUserTopics")
   isLoadingBar = false;
-  var checkboxes = makeTable(topics)
+  var checkboxes = makeTopicsTable(topics)
   setUserBoxes(userTopics, checkboxes)
 }
 
