@@ -30,12 +30,44 @@ ul{
     transition: all 2s ease;
 }
 
+#topicsTile{
+    display: table;
+}
+
+th, td{
+    overflow-x: hidden;
+}
+
+.panel{
+    display: table;
+}
+
+table{
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
+.addOrEdit{
+    font-size: small;
+}
+
 #wizardAvatar{
     font-size: 36px;
     cursor: pointer;
 }
-.progress:indeterminate{
+.progress.is-small:indeterminate{
     animation-duration: 0.3s
+}
+
+.panel-block:not(:last-child), .panel-tabs:not(:last-child) {
+    border-bottom: 1px solid #ededed;
+    display: block;
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
+.panel-tabs{
+    display: flex !important;
 }
 
 #checkboxLoader{
@@ -109,6 +141,35 @@ ul{
 }
 .table thead td, .table thead th {
     border-width: 0 0 1px;
+}
+
+.topic{
+    margin-top: 20px;
+}
+
+.topicButton{
+    margin-top: 20px;
+    margin-left: 8px;
+    vertical-align: bottom;
+    text-decoration: none !important;
+}
+
+a.topicButton.is-dark:hover{
+    cursor:pointer;
+    filter: brightness(110%)
+}
+
+a.topicButton.is-light:hover{
+    cursor:pointer;
+    filter: brightness(95%)
+}
+
+.modal-card-body{
+    overflow-y: auto;
+}
+
+.put-to-bottom{
+    vertical-align: bottom !important;
 }
 
 .user-article-history-list {

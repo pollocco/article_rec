@@ -1,6 +1,5 @@
 //Global bois
 var isLoadingBar = false
-
 const PAGE_SIZE = 5
 var indexCount = 0
 var pagNav = makeNode("nav", [{"className":"pagination"}])
@@ -8,7 +7,26 @@ var nextPage = makeNode("a", [{"textContent":"Next"}, {"className":"pagination-n
 var prevPage = makeNode("a", [{"className":"pagination-previous"}, {"textContent":"Previous"}])
 prevPage.style.visibility = "hidden";
 nextPage.style.visibility = "visible";
-//
+//End Global bois
+
+//Entry Point
+document.addEventListener("DOMContentLoaded", async function(){
+  var sources = await getReq("/api/getTopicArticleSources")
+  makeFilters(sources)
+  makeLoadingBar(10, "Booting up the mainframe...")
+  var topics = await getReq("/api/getTopics")
+  var checkboxes = makeTable(topics)
+  getUserTopics(checkboxes)
+  var userHistory = await getReq("/api/getUserArticlesHistory")
+  makeUserArticleHistorySidebar(userHistory)
+  bindResetButton()
+})
+//End Entry Point
+
+async function getTopicArticlesWithConcatTopics(){
+  var allTopicsResponse = await getReq('/api/getTopicArticlesWithConcatTopics')
+  console.log(allTopicsResponse)
+}
 
 async function postReq(url='', data={}){
   const response = await fetch(url,{
@@ -37,6 +55,7 @@ async function getUserTopics(checkboxes) {
     displayNoArticles()
   }
 }
+
 async function toggleUserArticle(likeButton) {
   let jsonObj = {
     articleId: likeButton.articleId,
@@ -67,8 +86,80 @@ async function toggleUserTopic(checkbox) {
   return;
 }
 
-function makePeriodicalFilter(response){
-    makeNode("Table", [{"className":"table is-child"}])
+function switchToAuthorFilter(authorTable, periodicalTable){
+  var sourcesTab = document.querySelector("#sourcesTab")
+  sourcesTab.addEventListener("click", function(){
+    switchToPeriodicalFilter(periodicalTable, authorTable)
+  })
+  if(sourcesTab.classList.contains("is-active")){
+    sourcesTab.classList.remove("is-active")
+  }
+  authorsTab.classList.add("is-active")
+  var periodicalFilter = document.querySelector("#periodicalFilter")
+  periodicalFilter.replaceChild(authorTable, periodicalFilter.children[0])
+}
+
+function switchToPeriodicalFilter(periodicalTable, authorTable){
+  var authorsTab = document.querySelector("#authorsTab")
+  authorsTab.addEventListener("click", function(){
+    switchToAuthorFilter(authorTable, periodicalTable)
+  })
+  if(authorsTab.classList.contains("is-active")){
+    authorsTab.classList.remove("is-active")
+  }
+  sourcesTab.classList.add("is-active")
+  var periodicalFilter = document.querySelector("#periodicalFilter")
+  periodicalFilter.replaceChild(periodicalTable, periodicalFilter.children[0])
+}
+
+async function togglePeriodical(checkboxes, checkbox, authorCheckboxes){
+  makeLoadingBar(90, "Updating...")
+  var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, 
+    {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
+  checkbox.cell.replaceChild(loader, checkbox)
+  var periodicalIds = []
+  var articleIds = []
+  var authorIds = []
+  for(i=0;i<authorCheckboxes.length;i++){
+    if(authorCheckboxes[i].checked == true){
+      authorIds.push(authorCheckboxes[i].authorId)
+    }
+  }
+  for(i=0;i<checkboxes.length;i++){
+    if(checkboxes[i].checked == true){
+      periodicalIds.push(checkboxes[i].periodicalId)
+    }
+  }
+  console.log(authorIds)
+  var topicArticles = await getReq("/api/getTopicArticlesWithConcatTopics")
+  console.log(topicArticles)
+  for(i=0; i<topicArticles.length;i++){
+    articleIds.push(topicArticles[i].articleId)
+  }
+  console.log(articleIds)
+  var jsonObj = {}
+  jsonObj["periodicalIds"] = periodicalIds
+  jsonObj["articleIds"] = articleIds
+  jsonObj["authorIds"] = authorIds
+  var response = await postReq("/api/getTopicArticlesFiltered", jsonObj)
+  console.log(response)
+  setLoadingBar(99, "Almost there!")
+  indexCount = 0;
+  checkbox.cell.replaceChild(checkbox, loader)
+  generateArticlesList(response, PAGE_SIZE)
+  for(i=0;i<checkboxes.length;i++){
+    checkboxes[i].checked = false;
+  }
+  for(i=0;i<response.length;i++){
+    for(j=0;j<checkboxes.length;j++){
+      if(response[i].periodicalId == checkboxes[j].periodicalId){
+        checkboxes[j].checked = true;
+      }
+    }
+  }
+}
+
+async function makeFilters(response){
     var checkboxes = []
     checkboxes.response = response;
     var periodicalTable = document.createElement("Table");
@@ -87,19 +178,66 @@ function makePeriodicalFilter(response){
 
       let checkboxCell = row.insertCell();
 
-      
       checkboxes[i] = function(x){
           return checkbox = makeNode("input", [{"type":"checkbox"}, {"cell":checkboxCell},{"cellText":nameCellText}, 
           {"name":response[x].periodicalName}, {"id":response[x].periodicalName}, {"checked":"true"}, 
           {"periodicalId":response[x].periodicalId}]);}(i)
-      checkboxes[i].addEventListener("click", function (x) {
-            return function(){togglePeriodical(checkboxes, checkboxes[x])};
-          }(i));
+      
       nameCellText.setAttribute("for", `${response[i].periodicalName}`)
 
       checkboxCell.appendChild(checkbox);
     }
+    periodicalTable.checkboxes = checkboxes
+
+    var authors = await getReq("/api/getTopicArticleAuthors")
+    var authorTable = document.createElement("Table");
+    let authorThead = authorTable.createTHead();
+
+    var authorCheckboxes = []
+
+    for (i = 0; i < authors.length; i++) {
+      let row = authorThead.insertRow();
+      row.classList.add("periodicalRow");
+  
+      let nameCell = row.insertCell();
+      let nameCellText = makeNode("label", [{"innerText":`${authors[i].authorFullName}`}])
+      nameCell.appendChild(nameCellText);
+  
+      let numberOfArticles = row.insertCell();
+      let numberOfArticlesText = makeNode("label", [{"innerText":`${authors[i].numberOfArticles}`}])
+      numberOfArticles.appendChild(numberOfArticlesText);
+  
+      let checkboxCell = row.insertCell();
+  
+      
+      authorCheckboxes[i] = function(x){
+          return checkbox = makeNode("input", [{"type":"checkbox"}, {"cell":checkboxCell},{"cellText":nameCellText}, 
+          {"name":authors[x].authorFullName}, {"id":authors[x].authorFullName}, {"checked":"true"}, 
+          {"authorId":authors[x].authorId}]);}(i)
+  
+      authorCheckboxes[i].addEventListener("click", function (x) {
+            return function(){togglePeriodical(checkboxes, authorCheckboxes[x], authorCheckboxes)};
+          }(i));
+  
+      nameCellText.setAttribute("for", `${authors[i].authorFullName}`)
+      
+      checkboxCell.appendChild(checkbox);
+    }
+    authorTable.authorCheckboxes = authorCheckboxes
+
+    for(i=0;i<checkboxes.length;i++){
+      checkboxes[i].addEventListener("click", function (x) {
+        return function(){togglePeriodical(checkboxes, checkboxes[x], authorCheckboxes)};
+      }(i));
+    }
+
     var periodicalFilter = clearAllAndReturn("#periodicalFilter");
+    var authorsTab = document.querySelector("#authorsTab")
+
+    authorsTab.addEventListener("click", function(){
+      switchToAuthorFilter(authorTable, periodicalTable)
+    })
+
     if(periodicalFilter){periodicalFilter.appendChild(periodicalTable);}
     
 }
@@ -141,9 +279,9 @@ function makeTable(response) {
 
         checkboxCell.appendChild(checkbox);
     }
-    var myTopics = document.querySelector("#myTopics");
+    var myTopics = clearAllAndReturn("#myTopics");
     myTopics.appendChild(topicsTable);
-    getUserTopics(checkboxes);
+    return checkboxes
 }
 
 function setUserBoxes(response, checkboxes) {
@@ -151,6 +289,32 @@ function setUserBoxes(response, checkboxes) {
     for (j = 0; j < checkboxes.length; j++) {
       if (checkboxes[j].topicId == response[i].topicId) {
         checkboxes[j].checked = true;
+      }
+    }
+  }
+}
+
+function spliceTopics(response){
+  for(i=0;i<response.length;i++){
+    for(j=0;j<response.length;j++){
+      if((response[i].articleId == response[j].articleId) && (i != j)){
+        if(response[i].hasOwnProperty("topicString")){
+          response[i].topicString += " | "
+          response[i].topicString += response[j].topic.toString()
+          response[i].topics.push(response[j].topic)
+          response.splice(j, 1)
+        }
+        else{
+          response[i].topics = []
+          response[i].topics.push(response[i].topic)
+          response[i].topics.push(response[j].topic)
+          topicString = ""
+          topicString += response[i].topic.toString()
+          topicString += " | "
+          topicString += response[j].topic.toString()
+          response[i].topicString = topicString
+          response.splice(j,1)
+        }
       }
     }
   }
@@ -186,46 +350,6 @@ function displayNoArticles() {
   articleList.appendChild(articleDiv);
 }
 
-async function togglePeriodical(checkboxes, checkbox){
-  makeLoadingBar(90, "Updating...")
-  var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, 
-    {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
-  checkbox.cell.replaceChild(loader, checkbox)
-  var periodicalIds = []
-  var articleIds = []
-  for(i=0;i<checkboxes.length;i++){
-    if(checkboxes[i].checked == true){
-      periodicalIds.push(checkboxes[i].periodicalId)
-    }
-  }
-  console.log(periodicalIds)
-  var topicArticles = await getReq("/api/getTopicArticles")
-  console.log(topicArticles)
-  for(i=0; i<topicArticles.length;i++){
-    articleIds.push(topicArticles[i].articleId)
-  }
-  console.log(articleIds)
-  var jsonObj = {}
-  jsonObj["periodicalIds"] = periodicalIds
-  jsonObj["articleIds"] = articleIds
-  var response = await postReq("/api/getTopicArticlesFiltered", jsonObj)
-  console.log(response)
-  setLoadingBar(99, "Almost there!")
-  indexCount = 0;
-  checkbox.cell.replaceChild(checkbox, loader)
-  paginate(response, 5)
-  for(i=0;i<checkboxes.length;i++){
-    checkboxes[i].checked = false;
-  }
-  for(i=0;i<response.length;i++){
-    for(j=0;j<checkboxes.length;j++){
-      if(response[i].periodicalId == checkboxes[j].periodicalId){
-        checkboxes[j].checked = true;
-      }
-    }
-  }
-}
-
 
 function makeUserArticleHistorySidebar(response) {
   var ul = document.createElement("ul");
@@ -237,8 +361,10 @@ function makeUserArticleHistorySidebar(response) {
     let linefeed = document.createElement("br");
     title.appendChild(linefeed);
     let content = makeNode("span", [{"className":"content sidebarBlurb"}, {"innerHTML":"<br/>"}])
-    content.innerText = response[i].content.substr(0, 100) + " ... ";
-    content.innerHTML += "<br/>"
+    if(response[i].content != null){
+      content.innerText = response[i].content.substr(0, 100) + " ... ";
+      content.innerHTML += "<br/>"
+    }
     let link = makeNode("a", [{"innerHTML":"<br/>Read Again <i class='fas fa-share'></i>"}, {"href":response[i].url}, {"target":"_blank"}])
     let lastViewed = document.createElement("span");
     let date = new Date(response[i].lastViewed);
@@ -267,12 +393,12 @@ function clearAllAndReturn(query){
 
 async function getTopicArticles() {
     makeLoadingBar(80, "Fetching articles...");
-    var topicArticles = await getReq("/api/getTopicArticles").catch(e=>{console.log(e)})
+    var topicArticles = await getReq("/api/getTopicArticlesWithConcatTopics").catch(e=>{console.log(e)})
     setLoadingBar(90, "Almost there!")
     indexCount = 0;
-    paginate(topicArticles, PAGE_SIZE)
+    generateArticlesList(topicArticles, PAGE_SIZE)
     var sources = await getReq("/api/getTopicArticleSources").catch(e=>{console.log(e)})
-    makePeriodicalFilter(sources)
+    makeFilters(sources)
 }
 
 async function openArticle(id, url) {
@@ -293,8 +419,8 @@ function makeNode(elementType, properties){
     return element
 }
 
-function show(page){
-  if(page.style.visibility == "hidden"){
+function show(page){                                        // Used for the "next page" and "previous page" buttons after 
+  if(page.style.visibility == "hidden"){                    // generateArticlesList determines whether we have next/previous pages.
     page.style.visibility = "visible"
   }
 }
@@ -305,9 +431,9 @@ function hide(page){
   }
 }
 
-function paginate(response, pageSize){
-  if(response.length == 0){
-    hide(nextPage)
+function generateArticlesList(response, pageSize){          // Controls the flow into makeArticlesPage by sending select amounts of the response
+  if(response.length == 0){                                 // to be created at a time. Also controls whether "next" and "previous" page controls
+    hide(nextPage)                                          // are visible or not. Sets the event listeners for nextPage and prevPage.
     hide(prevPage)
     displayNoArticles()
   }
@@ -315,12 +441,12 @@ function paginate(response, pageSize){
     hide(prevPage)
   }
   if(pageSize > response.length){
-    makeTopicArticles(response, response.length, indexCount)
+    makeArticlesPage(response, response.length, indexCount)
     indexCount += response.length
     hide(nextPage)
   }
   if(indexCount + pageSize <= response.length){
-    makeTopicArticles(response, pageSize, indexCount)
+    makeArticlesPage(response, pageSize, indexCount)
     indexCount += pageSize;
     if(indexCount == response.length){
       hide(nextPage)
@@ -328,13 +454,13 @@ function paginate(response, pageSize){
   }
   else if(indexCount < response.length && indexCount + pageSize > response.length){
     let num = response.length % pageSize
-    makeTopicArticles(response, num, indexCount)
+    makeArticlesPage(response, num, indexCount)
     hide(nextPage)
     indexCount += num
   }
   nextPage.onclick = function(){
     isLoadingBar = false
-    paginate(response, pageSize)
+    generateArticlesList(response, pageSize)                         // Recursive call because the required checks are the same.
     if(indexCount - pageSize >= 0){
       show(prevPage)
       prevPage.onclick = function(){
@@ -356,13 +482,13 @@ function paginate(response, pageSize){
 }
 
 function handlePrevPage(response, pageSize){
-  if(indexCount % pageSize == 0){
+  if(indexCount % pageSize == 0){                                     // 2 steps backward, 1 step forward to return the last page.
     indexCount -= pageSize * 2;
   }
   else{
     indexCount = indexCount - pageSize - (indexCount % pageSize)
   }
-  makeTopicArticles(response, pageSize, indexCount)
+  makeArticlesPage(response, pageSize, indexCount)
   indexCount += pageSize;
   if(indexCount - pageSize <= 0){
     hide(prevPage)
@@ -380,59 +506,417 @@ function appendThese(node, childNodes){
   for(i=0;i<childNodes.length;i++){
     node.appendChild(childNodes[i])
   }
-}
+} 
 
-async function makeTopicArticles(response, amount, startingIndex) {
-  setLoadingBar(90, "Generating list...");
-
-  var list = document.createElement("ul");
-  if (response.length == 0) {
-    displayNoArticles();
-  } else {
+async function makeArticlesPage(response, amount, startingIndex) {    // WARNING! This function is super fragile and prone to breakage!
+  setLoadingBar(90, "Generating list...");                            // There is a very delicate balance at play keeping these variables
+  var list = document.createElement("ul");                            // from being undefined. Most of it has to do with setting object properties
+  if (response.length == 0) {                                         // equal to important identifying variables and in some cases setting their
+    displayNoArticles();                                              // parent elements as a property, or storing elements that undergo async operations in arrays.                                                                      
+  } else {                                                            // The alternating use of 'let' and 'var' here is intentional.
         let appender = []
+        var nonUserTopicSpansArray = []                               // ALSO WARNING! Don't call this function on its own. Call generateArticlesList to make the list.
         for (i = startingIndex; i < startingIndex + amount; i++) {
             let listItem = document.createElement("li");
-            let topic = makeNode("span", [{"className":"is-size-7 is-uppercase is-block"}, {"innerText":response[i].topic}])
-            let articleTitle = makeNode("p", [{"className":"article-title is-size-5 has-text-weight-bold has-text-dark"}, {"innerText":response[i].title}])
-            let articleContent = makeNode("p", [{"className":"article-content is-size-6 has-text-grey-dark"}, {"innerText":response[i].content}])
-            let periodical = makeNode("a", [{"innerText":response[i].periodicalName}, {"href":response[i].periodicalUrl}, {"target":"_blank"}, {"className":"periodical is-size-6 has-text-dark"}])
+            let articleTitle = makeNode("p", [{"className":"article-title is-size-5 has-text-weight-bold has-text-dark"}, 
+              {"innerText":response[i].title}])
+            var topics = response[i].topic.split('&&&')
+            var topicIds = response[i].topicId.split('&&&')
+            var topic = makeNode("span", [{"className":"topic"}, {"id":`topicList${response[i].articleId}`}])
+            var topicText = makeNode("span", [{"className":"is-small is-uppercase is-size-7 put-to-bottom"}, 
+            {"textContent":"Topics "}])
+            topic.appendChild(topicText)
+            for(j=0;j<topics.length;j++){
+              let topicSpan = makeNode("a", [{"className":"tag is-small is-dark is-uppercase is-size-7 topicButton"}, {"innerText":topics[j]}, 
+                {"topicId":topicIds[j]}, 
+                {"topic":topics[j]}])
+              topicSpan.addEventListener("click", function(){
+                openTopicPreview(topicSpan)
+              })
+              articleTitle.appendChild(topicSpan)
+              topic.appendChild(topicSpan)
+            }
+            let articleContent = makeNode("p", [{"className":"article-content is-size-6 has-text-grey-dark"}, 
+              {"innerText":response[i].content}])
+
+            let periodical = makeNode("a", [{"innerText":response[i].periodicalName}, 
+              {"href":response[i].periodicalUrl}, 
+              {"target":"_blank"}, 
+              {"className":"periodical is-size-6 has-text-dark"}])
+
             let author = makeNode("span", [{"className":"author is-size-6 has-text-dark"}])
+
             author.innerText = ` ${response[i].firstName} ${response[i].lastName}`;
 
-            let articleDate = makeNode("span", [{"style":"font-family: 'EB Garamond', Georgia, Times, serif;"}, {"className":"article-date is-size-6 has-text-dark"}])
+            let articleDate = makeNode("span", [{"style":"font-family: 'EB Garamond', Georgia, Times, serif;"}, 
+              {"className":"article-date is-size-6 has-text-dark"}])
+
             let articleDateText = document.createElement("span");
             articleDate.innerText = response[i].date.substring(0, 10);
             articleDateText.appendChild(articleDate);
             
-            let readButton = makeNode("a", [{"style":"padding-right: 20px;"}, {"url":response[i].url}, {"articleId":response[i].articleId}, {"innerHTML":"Read <i class='fas fa-share'></i>"}])
+            let readButton = makeNode("a", [{"style":"padding-right: 20px;"}, 
+              {"url":response[i].url}, 
+              {"articleId":response[i].articleId}, 
+              {"innerHTML":"Read <i class='fas fa-share'></i><br/>"}])
+
             readButton.addEventListener("click", async function () {
                 window.open(readButton.url, "__blank");
                 toggleUserArticle(readButton);
+
                 var userHistory = await getReq("/api/getUserArticlesHistory")
                 makeUserArticleHistorySidebar(userHistory)
-            });
+            });  
+
+            // This lets the user click a "+" to add a new topic.
+            let addTopicButton = makeNode("a", [{"className":"tag is-small is-light is-uppercase topicButton"},         
+              {"innerHTML":"<i class='fas fa-plus'></i>"}, 
+              {"articleId":response[i].articleId}, 
+              {"topic":response[i].topic.split('&&&')},
+              {"topicIds":response[i].topicIds},
+              {"listItem":listItem}])
+
+            addTopicButton.addEventListener("click", function(){
+              showAddTopic(addTopicButton)
+            })
+
+            let spanForNonUserTopics = makeNode("span",                         // This is the light-colored tags that show next to the user's tags. 
+                [{"articleId":response[i].articleId},                           
+                {"topic":response[i].topic.split('&&&')},                       // Topics are returned as GROUP_CONCAT(Topics.name SEPARATOR '&&&') 
+              {"className":"tag is-dark is-uppercase topicButton"},             //                                ['&&&' seemed like an unlikely enough three characters to use]
+            {"textContent":""}])
+
+            spanForNonUserTopics.style.display = "none"                         // Not displayed by default to avoid ugly empty space.
+
+            nonUserTopicSpansArray.push(spanForNonUserTopics)                   // Whether or not to display them depends on AJAX call that messes up the scope,
+                                                                                // so we wait until the loop is over and then iterate through this array separately.
+            spanForNonUserTopics["listItem"] = listItem
            
-            appender.push(function(a, b, c, d, e, f, g){
-              return function(){appendThese(listItem, [a, b, c, d, e, f, g])}
-            }(topic, articleTitle, articleContent, periodical, author, articleDateText, readButton));
-            let listItemDiv = makeNode("div", [{"className":"tile is-parent is-vertical box"}, {"id":"listItemDiv"}, 
-            {"periodicalId":response[i].periodicalId}, {"articleId":response[i].articleId}])
+            appender.push(function(a, b, c, d, e, f, g, h, i){                  // Very hideous means of appending the lot. It's pretty much exactly the closure activity
+              return function(){                                                // from 290. We store the function that appends them and then execute it after the loop.
+                appendThese(listItem, [a, b, c, d, e, f, g, h, i])}
+            }(articleTitle, articleContent, periodical, author, articleDateText, readButton, topic, spanForNonUserTopics, addTopicButton));
+
+            var listItemDiv = makeNode("div", [{"className":"tile is-parent is-vertical box"}, 
+              {"id":"listItemDiv"}, 
+              {"periodicalId":response[i].periodicalId}, 
+              {"articleId":response[i].articleId}])
+
             
             listItemDiv.appendChild(listItem);
             list.appendChild(listItemDiv);
         }
-        for(j=0; j<appender.length; j++){
+
+        for(j=0; j<appender.length; j++){                                       // See one comment up.
           appender[j]()
         }
+
+        getAllTopicsForSingleArticle(nonUserTopicSpansArray)                    // This gets *every* topic for the articles on the page.
+                                                                                // (Uses a pretty expensive loop so doing it on a page-by-page basis.)
         let dummyText = makeDummyText()
-        let icon = makeNode("icon", [{"innerText":"📰"}, {"className":"icon column is-centered is-large"}, {"id":"noteIcon"}])
-        let iconCol = makeNode("p", [{"className":"columns tile is-parent"}, {"id":"iconCol"}])
+
+        let icon = makeNode("icon", [{"innerText":"📰"},                        // Icon at the bottom of the article list to signify page end.
+          {"className":"icon column is-centered is-large"}, 
+          {"id":"noteIcon"}])
+
+        let iconCol = makeNode("p", [{"className":"columns tile is-parent"}, 
+          {"id":"iconCol"}])
 
         iconCol.appendChild(icon)
+
         appendThese(list, [iconCol, dummyText])
+
         var articleList = clearAllAndReturn("#articleList");
         articleList.appendChild(list);   
     }
+}
+
+async function openTopicPreview(button){
+
+  var jsonObj = {}                                                        // We'll be sending the topic *name* to the server via POST.
+  jsonObj["topic"] = button.topic
+
+  var singleTopicList = await postReq('/api/getJustOneTopic', jsonObj)
+
+  var modalParent = makeNode("div", [{"className":"modal"}])                // This uses Bulma's modal popup. Looks like a lot of stuff but it's really not.
+
+  var modalBg = makeNode("div", [{"className":"modal-background"}])       // Faded background
+
+  var modalCard = makeNode("div", [{"className":"modal-card"}])           // Card body
+
+  var modalHeader = makeNode("header", [{"className":"modal-card-head"}]) // Header
+
+  var modalTitle = makeNode("p", [{"className":"modal-card-title"}, 
+  {"textContent":button.topic}])
+
+  var exitModal = makeNode("button", [{"className":"delete"}, {"aria-label":"close"}])
+
+  exitModal.addEventListener("click", function(){                         // There's a close button at the bottom and an 'X' at the top. Both just remove the whole thing.
+    document.body.removeChild(modalParent)
+  })
+
+  var modalSection = makeNode("section", [{"className":"modal-card-body"}])
+
+  var modalFooter = makeNode("footer", [{"className":"modal-card-foot"}])
+
+  var modalFooterButtonText = ""                                          
+  var modalFooterButtonClass = ""                                         
+
+  if(button.classList.contains("is-dark") || button.classList.contains("is-success")){                               // Since /api/toggleTopic doesn't care about the state, we can just look at the color of the button
+    modalFooterButtonText = "Remove from My Topics";                      // to determine whether it's one of the user's topics.
+    modalFooterButtonClass = "button is-danger";                          
+  } else{
+    modalFooterButtonText = "Add to My Topics";
+    modalFooterButtonClass = "button is-success";
+  }
+
+  var modalFooterButtonClose = makeNode("button", [{"className":"button is-light"}, {"textContent":"Close"}])
+
+  modalFooterButtonClose.addEventListener("click", function(){
+    document.body.removeChild(modalParent)
+  })
+
+  let articleTable = makeNode("table", [{"className":"table"}])
+
+  for(i=0;i<singleTopicList.length;i++){                                  // Table of articles for the topic preview.
+    let articleRow = articleTable.insertRow()
+
+    let titleCell = articleRow.insertCell()
+
+    let titleCellText = makeNode("span", [{"textContent":singleTopicList[i].title}, 
+      {"className":"title is-6"}])
+
+    titleCell.appendChild(titleCellText)
+
+    let readCell = articleRow.insertCell()
+
+    let readCellLink = makeNode("a", [{"articleId":singleTopicList[i].articleId}, 
+      {"url":singleTopicList[i].url}])
+
+    let readCellText = makeNode("i", [{"className":"far fa-newspaper"}])
+
+    readCellLink.appendChild(readCellText)
+
+    readCellLink.addEventListener("click", function(){
+      window.open(readCellLink.url, "__blank");
+      toggleUserArticle(readCellLink)
+    })
+
+    readCell.appendChild(readCellLink)
+
+    let periodicalCell = articleRow.insertCell()
+
+    let periodicalCellText = makeNode("span", [{"textContent":singleTopicList[i].periodicalName}])
+
+    periodicalCell.appendChild(periodicalCellText)
+  }
+  modalSection.appendChild(articleTable)
+  var modalFooterButton = makeNode("button", [{"className":modalFooterButtonClass}, 
+    {"innerText":modalFooterButtonText}, 
+    {"topic":button.topic}])
+
+  modalFooterButton.addEventListener("click", function(){
+    var jsonObj = {}
+    jsonObj["topic"] = button.topic
+    var checkbox = document.getElementById(button.topic)
+    toggleUserTopic(checkbox)
+    document.body.removeChild(modalParent)
+  })
+
+  appendThese(modalHeader, [modalTitle, exitModal])
+  appendThese(modalFooter, [modalFooterButton, modalFooterButtonClose])
+  appendThese(modalCard, [modalHeader, modalSection, modalFooter])
+  appendThese(modalParent, [modalBg, modalCard])
+
+  modalParent.classList.add("is-active")
+  document.body.appendChild(modalParent)
+}
+
+async function getAllTopicsForSingleArticle(buttons){
+  articleIds = []
+  topics = []
+
+  for(i=0;i<buttons.length;i++){
+    articleIds.push(buttons[i].articleId)             
+    for(j=0;j<buttons[i].topic.length;j++){
+      topics.push(buttons[i].topic[j])
+    }
+  }
+
+  jsonObj = {}
+  jsonObj["topics"] = topics
+  jsonObj["articleIds"] = articleIds
+
+  var response = await postReq("/api/allTopicsForArticles", jsonObj)
+
+  if(response.length === 0){
+
+    var extraTopics = makeNode("span", [{"className":"extraTopics"}, {"textContent":""}])
+
+  } else{
+    for(i=0;i<response.length;i++){
+      for(j=0;j<buttons.length;j++){                                              // This is why I did it page-by-page lol
+        if(buttons[j].articleId == response[i].articleId){
+          let splitTopics = response[i].topics.split('&&&')
+          let extraTopics = makeNode("span", [{"className":"topic"}, {"id":"#extraTopics"}])
+
+          for(k=0;k<splitTopics.length;k++){
+            let extraTopic = makeNode("a", [{"className":"tag is-light is-uppercase topicButton"},
+            {"textContent":splitTopics[k]}, 
+            {"articleId":buttons[j].articleId}, 
+            {"topic":splitTopics[k]},
+            {"listItem":buttons[j].listItem}])
+
+            extraTopics.appendChild(extraTopic)
+
+            extraTopic.addEventListener("click", function(){
+              openTopicPreview(extraTopic)
+            })
+          }
+          buttons[j].style.display = ""
+
+          buttons[j].listItem.replaceChild(extraTopics, buttons[j])
+        }
+      }
+    }
+    
+  }
+}
+
+async function showAddTopic(button){                                        // User can add a new topic or select an existing one that
+  var textInputDiv= makeNode("div", [{"class":"field"}])                    // also describes the article.
+
+  var textInputLabel = makeNode("label", [{"class":"label"},                // Uses two radio buttons ("Add new" and "Select Existing")
+    {"textContent":"Why don't you tell me the topic?"}])                    // and switches between a text input for "Add new" 
+                                                                            // and a dropdown for "Select Existing"
+  var textInputControl = makeNode("div", [{"class":"control"}])
+
+  var textInput = makeNode("input", {"type":"text"}, [{"className":"input"}])
+
+  textInput.setAttribute("placeholder","Topic name")
+
+  var selectExistingDiv = makeNode("div", [{"className":"select is-multiple"}, 
+    {"id":"selectExisting"}])
+
+  var selectExistingControl = makeNode("select", [{"multiple size":"6"}])
+
+  var topics = await getReq("/api/getTopics")                               // Grabs the list of topics for the dropdown menu
+
+  var noneOption = document.createElement("option")
+
+  noneOption.value = null
+
+  noneOption.textContent = "Select existing"
+
+  selectExistingControl.appendChild(noneOption)
+
+  for(i=0; i<topics.length;i++){
+    var topicOption = document.createElement("option")
+    topicOption.value = topics[i].name
+    topicOption.innerText = topics[i].name
+    selectExistingControl.appendChild(topicOption)
+  }
+
+  selectExistingDiv.appendChild(selectExistingControl)
+
+  var textHelper = makeNode("p", [{"className":"help"}, 
+    {"textContent":"Since you're so smart all of a sudden..."}])
+
+  var radioControl = makeNode("div", [{"className":"control"}])
+
+  var addLabel = makeNode("label", [{"className":"radio addOrEdit"}, 
+    {"name":"addOrEdit"}, 
+    {"textContent":"Write your own  "}])
+
+  var selectLabel = makeNode("label", [{"className":"radio addOrEdit"}, 
+    {"name":"addOrEdit"}, 
+    {"textContent":"Select existing  "}])
+
+  var addRadio = makeNode("input", [{"type":"radio"}, 
+    {"name":"addOrSelect"}, 
+    {"value":"add"}])
+
+  addRadio.checked = true;
+
+  var selectRadio = makeNode("input", [{"type":"radio"}, 
+    {"name":"addOrSelect"}, 
+    {"value":"select"}])
+
+  addLabel.appendChild(addRadio)
+  selectLabel.appendChild(selectRadio)
+
+  selectRadio.addEventListener("click", function(){
+    textInputDiv.replaceChild(selectExistingDiv, textInput)
+    addRadio.addEventListener("click", function(){
+      textInputDiv.replaceChild(textInput, selectExistingDiv)
+    })
+  })
+
+  radioControl.appendChild(addLabel)
+  radioControl.appendChild(selectLabel)
+
+  var textSubmit = makeNode("button", [{"className":"button is-dark is-small"}, {"textContent":"Add"}])
+  var textCancel = makeNode("button", [{"className":"button is-light is-small"}, {"textContent":"Cancel"}])
+
+  textCancel.addEventListener("click", function(){
+    button.listItem.replaceChild(button, textInputDiv)
+  })
+  textSubmit.addEventListener("click", function(){
+    textSubmit.textContent = "Thanks!"
+    textSubmit.className = "button is-success"
+    if(selectRadio.checked == true){
+      var topic = selectExistingControl.value
+    }
+    else{
+      var topic = textInput.value
+    }
+    sendTopic(topic, button)
+    button.listItem.replaceChild(button, textInputDiv)
+  })
+
+  appendThese(textInputDiv, [textInputLabel, textInputControl, textHelper, textInput, radioControl, textSubmit, textCancel])
+  button.listItem.replaceChild(textInputDiv, button)
+}
+
+async function sendTopic(topic, button){
+  let jsonObj = {
+    "newTopic":topic,
+    "articleId":button.articleId,
+    "topic":button.topic
+  }
+  var response = await postReq("/api/addTopic", jsonObj)
+  let jsonObj2 = {
+    "articleId":button.articleId
+  }
+  var newTopicList = await postReq("/api/topicsForSingleArticle", jsonObj)
+  var userTopics = await getReq("/api/getUserTopics")
+  var topicList = document.querySelector(`#topicList${jsonObj2["articleId"]}`)
+  var isAlreadyThere = false
+  for(i=1;i<topicList.children.length;i++){
+    if(topicList.children[i].textContent == topic){
+      topicList.children[i].classList.remove("is-dark")
+      topicList.children[i].classList.add("is-success")
+      isAlreadyThere = true
+    }
+  }
+  for(i=0;i<newTopicList.length;i++){
+    if(newTopicList[i].topic == topic){
+      topic.topicId = newTopicList[i].topicId
+      break
+    }
+  }
+  if(!isAlreadyThere){
+    let newTopic = makeNode("a", [{"className":"tag is-success is-uppercase topicButton"}, {"topicId":topic.topicId}, {"textContent":topic}, {"topic":topic}])
+    newTopic.addEventListener("click", function(){
+      openTopicPreview(newTopic)
+    })
+    topicList.insertBefore(newTopic, topicList.children[1])
+  }
+  var topics = await getReq("/api/getTopics")
+  var userTopics = await getReq("/api/getUserTopics")
+  isLoadingBar = false;
+  var checkboxes = makeTable(topics)
+  setUserBoxes(userTopics, checkboxes)
 }
 
 function makeDummyText(){                               // Invisible text to prevent the article list from shrinking 
@@ -449,20 +933,14 @@ function bindResetButton(){
   var reset = document.querySelector("#resetButton")
   reset.addEventListener("click", function(){
     getTopicArticles()
+    var authorsTab = document.querySelector("#authorsTab")
+    var sourcesTab = document.querySelector("#sourcesTab")
+    if(authorsTab.classList.contains("is-active")){
+      authorsTab.classList.remove("is-active")
+      sourcesTab.classList.add("is-active")
+    }
   })
 }
-
-//ENTRY POINT
-document.addEventListener("DOMContentLoaded", async function(){
-  var sources = await getReq("/api/getTopicArticleSources")
-  makePeriodicalFilter(sources)
-  makeLoadingBar(10, "Booting up the mainframe...")
-  var topics = await getReq("/api/getTopics")
-  makeTable(topics)
-  var userHistory = await getReq("/api/getUserArticlesHistory")
-  makeUserArticleHistorySidebar(userHistory)
-  bindResetButton()
-})
 
 //The island of unhappy code
 

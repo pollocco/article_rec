@@ -309,7 +309,7 @@ router.post('/toggleUserArticle', function(req, res, next){
 
 router.get('/getTopicArticles', function(req, res, next){
     var userId = req.session.userId;
-    mysql.pool.query('SELECT Articles.*, Topics.name as topic, Authors.*, Periodicals.name as periodicalName, Periodicals.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM Articles  ' +
+    mysql.pool.query('SELECT Articles.*, Topics.name as topic, Authors.*, Periodicals.name as periodicalName, Periodicals.periodicalId as periodicalId' +
     'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
     'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
     'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
@@ -318,6 +318,77 @@ router.get('/getTopicArticles', function(req, res, next){
     'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
     'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
     'WHERE UserTopics.userId = ? ORDER BY Articles.date DESC', [userId], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+})
+
+router.get('/getTopicArticlesWithConcatTopics', function(req, res, next){
+    var userId = req.session.userId
+    mysql.pool.query('SELECT Articles.*, GROUP_CONCAT(Topics.name SEPARATOR "&&&") as topic, ' +
+    'GROUP_CONCAT(Topics.topicId SEPARATOR "&&&") as topicId, Authors.*, Periodicals.name as ' +
+    'periodicalName, PeriodicalArticles.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM Articles ' +
+    'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+    'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'JOIN AuthorArticles ON Articles.articleId = AuthorArticles.articleId ' +
+    'JOIN Authors ON AuthorArticles.authorId = Authors.authorId ' +
+    'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
+    'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
+    'WHERE UserTopics.userId =? GROUP BY Articles.articleId, Authors.authorId, Periodicals.periodicalId, Periodicals.name ORDER BY Articles.date DESC ', [userId], function(error, result){
+        if(error){
+            console.log(error)
+        } 
+        else{
+            res.send(result)
+        }
+    })
+})
+
+router.post('/getJustOneTopic', function(req, res, next){
+    var topic = req.body.topic
+    mysql.pool.query('SELECT Articles.*, GROUP_CONCAT(Topics.name SEPARATOR "&&&") as topic, GROUP_CONCAT(Topics.topicId SEPARATOR "&&&") as topicId, ' +
+    'Authors.*, Periodicals.name as periodicalName, PeriodicalArticles.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM Articles ' +
+    'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'JOIN AuthorArticles ON Articles.articleId = AuthorArticles.articleId ' +
+    'JOIN Authors ON AuthorArticles.authorId = Authors.authorId ' +
+    'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
+    'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
+    'WHERE Topics.name = ? GROUP BY Articles.articleId, Authors.authorId, Periodicals.periodicalId, Periodicals.name ORDER BY Articles.date DESC ', [topic], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+})
+
+router.post('/topicsForSingleArticle', function(req, res, next){
+    var articleId = req.body.articleId
+    mysql.pool.query('SELECT Topics.name AS topic, Topics.topicId as topicId FROM ArticleTopics ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'WHERE ArticleTopics.articleId=? ', [articleId], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+})
+
+router.post('/allTopicsForArticles', function(req, res, next){
+    var articleIds = req.body.articleIds
+    var topics = req.body.topics
+    mysql.pool.query('SELECT ArticleTopics.articleId, GROUP_CONCAT(Topics.name SEPARATOR "&&&") as topics, COUNT(Topics.name) as amount FROM ArticleTopics  ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'WHERE ArticleTopics.articleId IN (?) AND Topics.name NOT IN (?) GROUP BY ArticleTopics.articleId', [articleIds, topics], function(error, result){
         if(error){
             console.log(error)
         }
@@ -345,28 +416,140 @@ router.get('/getTopicArticleSources', function(req, res, next){
     })
 })
 
+router.get('/getTopicArticleAuthors', function(req, res, next){
+    var userId = req.session.userId
+    mysql.pool.query('SELECT count(AuthorArticles.articleId) as numberOfArticles, ' +
+    'CONCAT(IFNULL(Authors.firstName, ""), " ", IFNULL(Authors.lastName, "")) as authorFullName, ' +
+    'AuthorArticles.authorId as authorId FROM Articles ' +
+    'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+    'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'JOIN AuthorArticles ON AuthorArticles.articleId = ArticleTopics.articleId ' +
+    'JOIN Authors ON Authors.authorId = AuthorArticles.authorId ' +
+    'WHERE UserTopics.userId = ? GROUP BY AuthorArticles.authorId ', [userId], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+})
+
+router.post('/addTopic', function(req, res, next){
+    var topic = req.body.topic
+    var articleId = req.body.articleId
+    var newTopic = req.body.newTopic
+    var newTopicId
+    mysql.pool.query('SELECT * FROM Topics WHERE name=?', [newTopic], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            if(result.length > 0){
+                newTopicId = result[0].topicId
+                mysql.pool.query('SELECT topicId FROM Topics WHERE name IN (?)', [topic], function(error, result){
+                    if(error){
+                        console.log(error)
+                    }
+                    else{
+                        var topicId = result[0].topicId
+                        mysql.pool.query('INSERT INTO TopicTopics (topicId, relatedTopic) VALUES (?, ?) ON DUPLICATE KEY UPDATE topicId=topicId', [topicId, newTopicId], function(error, result){
+                            if(error){
+                                console.log(error)
+                            }
+                            else{
+                                mysql.pool.query('INSERT INTO ArticleTopics (articleId, topicId) VALUES (?, ?) ON DUPLICATE KEY UPDATE articleId=articleId', [articleId, newTopicId], function(error, result){
+                                    if(error){
+                                        console.log(error)
+                                    }
+                                    else{
+                                        mysql.pool.query('INSERT INTO UserTopics (userId, topicId) VALUES (?, ?) ON DUPLICATE KEY UPDATE userId=userId', [req.session.userId, newTopicId], function(error, result){
+                                            if(error){
+                                                console.log(error)
+                                            }
+                                            else{
+                                                res.send(result)
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            } else{
+                mysql.pool.query('INSERT INTO Topics SET name=?',[newTopic], function(error, result){
+                    if(error){
+                        console.log(error)
+                    }
+                    else{
+                        newTopicId = result.insertId
+                        mysql.pool.query('SELECT topicId FROM Topics WHERE name IN (?)', [topic], function(error, result){
+                            if(error){
+                                console.log(error)
+                            }
+                            else{
+                                var topicId = result[0].topicId
+                                mysql.pool.query('INSERT INTO TopicTopics (topicId, relatedTopic) VALUES (?, ?) ON DUPLICATE KEY UPDATE topicId=topicId', [topicId, newTopicId], function(error, result){
+                                    if(error){
+                                        console.log(error)
+                                    }
+                                    else{
+                                        mysql.pool.query('INSERT INTO ArticleTopics (articleId, topicId) VALUES (?, ?) ON DUPLICATE KEY UPDATE topicId=topicId', [articleId, newTopicId], function(error, result){
+                                            if(error){
+                                                console.log(error)
+                                            }
+                                            else{
+                                                mysql.pool.query('INSERT INTO UserTopics (userId, topicId) VALUES (?, ?) ON DUPLICATE KEY UPDATE topicId=topicId', [req.session.userId, newTopicId], function(error, result){
+                                                    if(error){
+                                                        console.log(error)
+                                                    }
+                                                    else{
+                                                        res.send(result)
+                                                    }
+                                                })
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        })
+                    }
+                } )
+            }
+        }
+    })
+    
+})
+
 router.post('/getTopicArticlesFiltered', function(req, res, next){
     console.log("hello!")
+    console.log(req.body)
     var periodicalIds = req.body.periodicalIds
     var articleIds = req.body.articleIds
+    var authorIds = req.body.authorIds
+    var userId = req.session.userId
     if(periodicalIds.length == 0 || articleIds.length == 0){
         var empty = []
         res.send(empty)
         next()
     }
     else{
-            mysql.pool.query('SELECT DISTINCT Articles.*, Topics.name as topic, Authors.*, Periodicals.name as periodicalName, Periodicals.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM Articles ' +
-        'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
-        'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId ' +
-        'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
-        'JOIN AuthorArticles ON Articles.articleId = AuthorArticles.articleId ' +
-        'JOIN Authors ON AuthorArticles.authorId = Authors.authorId ' +
-        'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
-        'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
-        'WHERE Periodicals.periodicalId IN (?) AND Articles.articleId IN (?) ORDER BY Articles.date DESC', [periodicalIds, articleIds], function(error, result){
+        mysql.pool.query('SELECT Articles.*, GROUP_CONCAT(Topics.name SEPARATOR "&&&") as topic, ' +
+        'GROUP_CONCAT(Topics.topicId SEPARATOR "&&&") as topicId, Authors.*, Periodicals.name as  ' +
+        'periodicalName, Periodicals.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM PeriodicalArticles ' +
+        'JOIN Articles on PeriodicalArticles.articleId=Articles.articleId ' +
+        'JOIN ArticleTopics on Articles.articleId=ArticleTopics.articleId ' +
+        'JOIN Topics on ArticleTopics.topicId=Topics.topicId ' +
+        'JOIN UserTopics on Topics.topicId=UserTopics.topicId ' +
+        'JOIN Periodicals on PeriodicalArticles.periodicalId=Periodicals.periodicalId ' +
+        'JOIN AuthorArticles on PeriodicalArticles.articleId=AuthorArticles.articleId ' +
+        'JOIN Authors on AuthorArticles.authorId=Authors.authorId ' +
+        'WHERE Periodicals.periodicalId IN (?) AND Articles.articleId IN (?) AND Authors.authorId IN (?) AND UserTopics.userId=? GROUP BY Articles.articleId, Authors.authorId, Periodicals.periodicalId ORDER BY Articles.date DESC ', [periodicalIds, articleIds, authorIds, userId], function(error, result){
             if(error){
                 console.log(error)
-            }
+            } 
             else{
                 res.send(result)
             }
@@ -376,10 +559,12 @@ router.post('/getTopicArticlesFiltered', function(req, res, next){
 
 router.get('/getUserArticlesHistory', function(req, res, next){
     var userId = req.session.userId;
-    mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed, Topics.name as topic FROM Articles ' +
-    'JOIN UserArticles ON Articles.articleId = UserArticles.articleId ' +
+    mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed, GROUP_CONCAT(Topics.name SEPARATOR " | ") as topic FROM Articles ' +
+    'JOIN UserArticles ON Articles.articleId = UserArticles.articleId  ' +
     'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
-    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId WHERE userId = ? ORDER BY UserArticles.lastViewed DESC', [userId], function(error, result){
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'JOIN UserTopics ON Topics.topicId = UserTopics.topicId ' +
+    'WHERE UserTopics.userId = ? GROUP BY Articles.articleId, UserArticles.userId ORDER BY UserArticles.lastViewed DESC', [userId], function(error, result){
         if(error){
             console.log(error)
         }
@@ -393,7 +578,7 @@ router.post('/setUserReadArticle', function(req, res, next){
     var userId = req.session.userId;
     var articleId = req.body.articleId;
     var dateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    mysql.pool.query('INSERT INTO UserArticles (userId, articleId, lastViewed) VALUES (?, ?, ?);', [userId, articleId, dateTime], function(error, result){
+    mysql.pool.query('INSERT INTO UserArticles (userId, articleId, lastViewed) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE lastViewed=?;', [userId, articleId, dateTime, dateTime], function(error, result){
         if(error){
             console.log(error)
         }
