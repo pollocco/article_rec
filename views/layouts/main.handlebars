@@ -2,6 +2,7 @@
     <link
         href="https://fonts.googleapis.com/css?family=Lobster+Two:400,700|Roboto+Slab|Source+Serif+Pro|EB+Garamond|EB+Garamond:ital@0;1|Libre+Baskerville:ital@0;1|Libre+Baskerville&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="auto-complete.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css">
     <link rel="stylesheet" href="style.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
@@ -37,20 +38,16 @@
                                         <div class="field">
                                         
                                             <label for="email" class="label">E-mail: </label>
-                                            <p class="control has-icons-left">
+                                            <p class="control">
                                             <input class="input" type="email" autocomplete="email" name="email"
-                                                id="email">
-                                                <span class="icon is-small is-left">
-                                                <i class="fas fa-envelope"></i>
-                                                </span>
+                                                id="email" placeholder="E-mail">
                                         </p>
                                         </div>
                                         <div class="field">
                                             <label for="password" class="label">Password: </label>
-                                            <p class="control has-icons-left">
+                                            <p class="control"></p>
                                             <input class="input" type="password" autocomplete="current-password"
-                                                name="password" id="password">
-                                                <span class="icon is-small is-left"><i class="fas fa-lock"></i></span>
+                                                name="password" id="password" placeholder="Password">
                                         </p>
                                     </div>
                                     <button class="button is-info is-light" type="submit" id="submit">Login</button>

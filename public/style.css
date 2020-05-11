@@ -66,6 +66,11 @@ table{
     overflow-y: scroll;
 }
 
+#searchArea{
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
 .panel-tabs{
     display: flex !important;
 }

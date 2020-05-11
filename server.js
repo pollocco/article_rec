@@ -586,6 +586,45 @@ router.post('/setUserReadArticle', function(req, res, next){
     })
 })
 
+router.post('/getJustOneArticle', function(req, res, next){
+    var title = req.body.title
+    mysql.pool.query('SELECT Articles.*, GROUP_CONCAT(Topics.name SEPARATOR "&&&") as topic, ' +
+    'GROUP_CONCAT(Topics.topicId SEPARATOR "&&&") as topicId, Authors.*, Periodicals.name as  ' +
+    'periodicalName, Periodicals.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM PeriodicalArticles ' +
+    'JOIN Articles on PeriodicalArticles.articleId=Articles.articleId ' +
+    'JOIN ArticleTopics on Articles.articleId=ArticleTopics.articleId ' +
+    'JOIN Topics on ArticleTopics.topicId=Topics.topicId ' +
+    'JOIN Periodicals on PeriodicalArticles.periodicalId=Periodicals.periodicalId ' +
+    'JOIN AuthorArticles on PeriodicalArticles.articleId=AuthorArticles.articleId ' +
+    'JOIN Authors on AuthorArticles.authorId=Authors.authorId ' +
+    'WHERE Articles.title=? ' +
+    'GROUP BY Articles.articleId, Authors.authorId, Periodicals.periodicalId ORDER BY Articles.date DESC', [title], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+})
+
+router.get('/searchTitles', function(req, res, next){
+    var query = req.query.q
+    query += "%"
+    mysql.pool.query('SELECT Articles.title as title, Articles.url as href FROM Articles WHERE Articles.title LIKE ?', [query], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            var arr = []
+            for(i=0;i<result.length;i++){
+                arr.push(result[i].title)
+            }
+            res.send(arr)
+        }
+    })
+})
+
 app.use('/api', router);
 
 app.listen(app.get('port'), function(){

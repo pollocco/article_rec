@@ -937,6 +937,96 @@ function bindResetButton(){
   })
 }
 
+async function openArticlePreview(e, term, item){
+  var jsonObj = {}                                                        // We'll be sending the topic *name* to the server via POST.
+  jsonObj["title"] = item.dataset.val
+  
+  var singleArticle = await postReq('/api/getJustOneArticle', jsonObj)
+
+  var response = singleArticle[0]
+
+  var modalParent = makeNode("div", [{"className":"modal"}])                // This uses Bulma's modal popup. Looks like a lot of stuff but it's really not.
+
+  var modalBg = makeNode("div", [{"className":"modal-background"}])       // Faded background
+
+  var modalCard = makeNode("div", [{"className":"modal-card"}])           // Card body
+
+  var modalHeader = makeNode("header", [{"className":"modal-card-head"}]) // Header
+
+  var titleString = "View Article"
+
+  var modalTitle = makeNode("p", [{"className":"modal-card-title"}, 
+  {"textContent":titleString}])
+
+  var exitModal = makeNode("button", [{"className":"delete"}, {"aria-label":"close"}])
+
+  exitModal.addEventListener("click", function(){                         // There's a close button at the bottom and an 'X' at the top. Both just remove the whole thing.
+    document.body.removeChild(modalParent)
+  })
+
+  var modalSection = makeNode("section", [{"className":"modal-card-body"}])
+
+  var modalFooter = makeNode("footer", [{"className":"modal-card-foot"}])
+
+  var modalFooterButtonClose = makeNode("button", [{"className":"button is-light"}, {"textContent":"Close"}])
+
+  modalFooterButtonClose.addEventListener("click", function(){
+    document.body.removeChild(modalParent)
+  })
+  var articleDiv = makeNode("div", [{"className":"singleArticleDiv"}])
+  var articleTitle = makeNode("p", [{"className":"title"}, {"textContent":response.title}])
+  var articleContent = makeNode("p", [{"className":"articleContent"}])
+  articleContent.style.paddingBottom = "10px"
+  if(response.content != null){
+    articleContent["textContent"] += response.content
+  }
+
+  var readButton = makeNode("a", [{"style":"padding-right: 20px;"}, 
+              {"url":response.url}, 
+              {"articleId":response.articleId}, 
+              {"innerHTML":"Read <i class='fas fa-share'></i><br/>"}])
+
+  readButton.addEventListener("click", async function () {
+      window.open(readButton.url, "__blank");
+      toggleUserArticle(readButton);
+
+      var userHistory = await getReq("/api/getUserArticlesHistory")
+      makeUserArticleHistorySidebar(userHistory)
+  });  
+
+  var periodical = makeNode("span", [{"className":"subtitle is-6"}, {"textContent":response.periodicalName}])
+  var author = makeNode("span", [{"className":"subtitle is-6"}, {"textContent":`${response.firstName} ${response.lastName}`}, {"style":"font-weight: bold;"}])
+  author.innerHTML += "&nbsp;|&nbsp;"
+  periodical.innerHTML += "&nbsp;|&nbsp;"
+  appendThese(articleDiv, [articleTitle, articleContent, author, periodical, readButton])
+  modalSection.appendChild(articleDiv)
+  appendThese(modalHeader, [modalTitle, exitModal])
+  appendThese(modalFooter, [modalFooterButtonClose])
+  appendThese(modalCard, [modalHeader, modalSection, modalFooter])
+  appendThese(modalParent, [modalBg, modalCard])
+
+  modalParent.classList.add("is-active")
+  document.body.appendChild(modalParent)
+
+}
+
+var xhr;
+new autoComplete({
+    selector: '#searchBox',
+    source: function(term, response){
+        try { xhr.abort(); } catch(e){}
+        xhr = $.getJSON('/api/searchTitles', { q: term }, function(data){ 
+          response(data); 
+        });
+    },
+    onSelect: function(e, term, item){
+      console.log(item)
+      openArticlePreview(e, term, item)
+    },
+    minChars: 1
+
+});
+
 //The island of unhappy code
 
 //let date = new Date(response[i].date)
