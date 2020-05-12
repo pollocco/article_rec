@@ -12,13 +12,21 @@
                                     <div class="control">
                                         <input v-model="articleTitle" class="input" type="text" placeholder="Title"/>
                                     </div>
+                                    <label class="label">Periodical</label>
+                                    <div class="control">
+                                        <input v-model="articlePeriodicalName" style="width: 50%;" class="input" type="text"/>
+                                    </div>
                                     <label class="label">Content</label>
                                     <div class="control">
-                                        <input v-model="articleContent" class="input" type="textarea" placeholder="Short description"/>
+                                        <textarea v-model="articleContent" class="textarea" type="textarea" placeholder="Short description"></textarea>
                                     </div>
                                     <label class="label">URL</label>
                                     <div class="control">
                                         <input v-model="articleUrl" class="input" type="text" placeholder="http://"/>
+                                    </div>
+                                    <label class="label">Date</label>
+                                    <div class="control">
+                                        <input v-model="articleDate" style="width: 25%;" class="input" type="date"/>
                                     </div>
                                     <div class="control">
                                         <button class="button is-success" style="margin-top: 2rem;" onclick="showAlert();">Add Article</button>
@@ -33,10 +41,13 @@
             <p class="title" style="visibility: hidden;">And be our star</p>
             <div class="tile">
                 <div class="tile is-parent is-vertical">
-                    <article class="tile is-child">
-                        <p class="article-title is-size-5 has-text-weight-bold has-text-dark">\{{articleTitle}}</p>
-                        <p class="article-content is-size-6 has-text-grey-dark">\{{articleContent}}</p>
-                        <a>\{{articleUrl}}</a>
+                    <article class="tile is-child has-background-dark has-text-light">
+                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">
+                            INSERT INTO Periodicals SET name="\{{articlePeriodicalName}}" <br/>
+                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Periodicals.periodicalId=Periodicals.periodicalId <br/>
+                            INSERT INTO Articles (title, content, url, date, periodicalId) VALUES ("\{{articleTitle}}", "\{{articleContent}}", <br/>
+                            &nbsp;&nbsp; "<a>\{{articleUrl}}</a>", STR_TO_DATE("\{{articleDate}}", '%Y-%m-%d'), (SELECT periodicalId FROM Periodicals WHERE name="\{{articlePeriodicalName}}")) <br/>
+                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Articles.articleId=Articles.articleId</p>
                     </article>
                 </div>
             </div>
@@ -52,11 +63,11 @@
                                     <legend class="subtitle">Add an Author</legend>
                                     <label class="label">First Name</label>
                                     <div class="control">
-                                        <input v-model="firstName" class="input" type="text" placeholder="First Name"/>
+                                        <input v-model="firstName" class="input" style="width: 50%;" type="text" placeholder="First Name"/>
                                     </div>
                                     <label class="label">Last Name</label>
                                     <div class="control">
-                                        <input v-model="lastName" class="input" type="text" placeholder="Last Name"/>
+                                        <input v-model="lastName" class="input" style="width: 50%;" type="text" placeholder="Last Name"/>
                                     </div>
                                     <div class="control">
                                         <button class="button is-success" style="margin-top: 2rem;" onclick="showAlert();">Add Author</button>
@@ -70,15 +81,14 @@
         <div class="tile is-vertical is-6">
             <div class="tile">
                 <div class="tile is-parent is-vertical">
-                    <article class="tile is-child">
-                        <p class="article-title is-size-5 has-text-grey-dark">\{{firstName}}</p>
-                        <p class="article-title is-size-5 has-text-weight-bold has-text-dark">\{{lastName}}</p>
+                    <article class="tile is-child has-background-dark has-text-light">
+                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">INSERT INTO Authors (firstName, lastName) VALUES ("\{{firstName}}", "\{{lastName}}") ON DUPLICATE KEY UPDATE Authors.authorId=Authors.authorId</p>
                     </article>
                 </div>
             </div>
         </div>
     </div>
-        <div class="tile is-ancestor">
+    <div class="tile is-ancestor">
         <div class="tile is-vertical is-6">
             <div class="tile">
                 <div class="tile is-parent is-vertical">
@@ -88,7 +98,7 @@
                                     <legend class="subtitle">Add a Periodical</legend>
                                     <label class="label">Periodical Name</label>
                                     <div class="control">
-                                        <input v-model="periodicalName" class="input" type="text" placeholder="Better be real"/>
+                                        <input v-model="periodicalName" class="input" style="width: 50%;" type="text" placeholder="Better be real"/>
                                     </div>
                                     <label class="label">Periodical URL</label>
                                     <div class="control">
@@ -107,9 +117,82 @@
         <div class="tile is-vertical is-6">
             <div class="tile">
                 <div class="tile is-parent is-vertical">
-                    <article class="tile is-child">
-                        <p class="article-title is-size-5 has-text-weight-bold has-text-dark">\{{periodicalName}}</p>
+                    <article class="tile is-child has-background-dark has-text-light">
+                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">INSERT INTO Periodicals (name, url) VALUES ("\{{periodicalName}}", "<a>\{{periodicalUrl}}</a>") ON DUPLICATE KEY UPDATE Periodicals.periodicalId=Periodicals.periodicalId;</p>
                         <a>\{{periodicalUrl}}</a>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="tile is-ancestor">
+        <div class="tile is-vertical is-6">
+            <div class="tile">
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child  has-background-light">
+                            <section class="section">
+                                <form class="form">
+                                    <legend class="subtitle">Add a Whole Entire Article</legend>
+                                    <label class="label">Title</label>
+                                    <div class="control">
+                                        <input v-model="fullTitle" class="input" type="text" placeholder="Feeling ambitious are we?"/>
+                                    </div>
+                                    <label class="label">Article URL</label>
+                                    <div class="control">
+                                        <input v-model="fullUrl" class="input" type="text" placeholder="http://"/>
+                                    </div>
+                                    <label class="label">Article Content</label>
+                                    <div class="control">
+                                        <textarea class="textarea" v-model="fullContent" type="textarea" placeholder="Tell me a story"></textarea>
+                                    </div>
+                                    <label class="label">Author</label>
+                                    <div class="control">
+                                        <input v-model="fullFirst" class="input" type="text" style="width: 50%;"placeholder="First Name"/>
+                                    </div>
+                                    <div class="control">
+                                        <input v-model="fullLast" class="input" style="margin-top: 1rem; width:50%;"type="text" placeholder="Last Name"/>
+                                    </div>
+                                    <label class="label" style="margin-top: 1rem;">Periodical Name</label>
+                                    <div class="control">
+                                        <input v-model="fullPeriodicalName" style="width: 50%;" class="input" type="text" placeholder="Where'd you find it?"/>
+                                    </div>
+                                    <label class="label">Date</label>
+                                    <div class="control">
+                                        <input v-model="fullDate" class="input" style="width: 25%;" type="date"/>
+                                    </div>
+                                    <label class="label">Topic</label>
+                                    <span class="helper" >Enter a topic</span>
+                                    <div class="control">
+                                        <input v-model="fullTopic" class="input" style="width: 50%;" type="text" placeholder="Keep it broad"/>
+                                    </div>
+                                    <div class="control">
+                                        <button class="button is-danger" style="margin-top: 2rem;" onclick="showAlert();">Break Everything</button>
+                                    </div>
+                                    
+                                </form>
+                        </section>
+                    </article>
+                </div>
+            </div>
+        </div>
+        <div class="tile is-vertical is-6">
+            <div class="tile">
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child has-background-dark has-text-light">
+                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">INSERT INTO Topics SET name = "\{{fullTopic}}" <br/>
+                                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Topics.topicId=Topics.topicId;<br/>
+                                            INSERT INTO Periodicals SET name="\{{fullPeriodicalName}}" <br/>
+                                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Periodicals.periodicalId=Periodicals.periodicalId;<br/>
+                                            INSERT INTO Articles (title, content, url, date, periodicalId) VALUES ("\{{fullTitle}}", "\{{fullContent}}", "<a>\{{fullUrl}}</a>", STR_TO_DATE("\{{fullDate}}", '%Y-%m-%d'),<br/> 
+                                            &nbsp;&nbsp; (SELECT periodicalId FROM Periodicals WHERE Periodicals.name="\{{fullPeriodicalName}}"))<br/> 
+                                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Articles.articleId=Articles.articleId;<br/>
+                                            INSERT INTO Authors (firstName, lastName) VALUES ("\{{fullFirst}}", "\{{fullLast}}") ON DUPLICATE KEY UPDATE Authors.authorId=Authors.authorId;<br/>
+                                            INSERT INTO ArticleTopics (articleId, topicId) VALUES ((SELECT articleId FROM Articles WHERE Articles.title="\{{fullTitle}}" AND Articles.url="<a>\{{fullUrl}}</a>"), <br/>
+                                            &nbsp;&nbsp; (SELECT topicId FROM Topics WHERE Topics.name="\{{fullTopic}}"));<br/>
+                                            INSERT INTO AuthorArticles (authorId, articleId) VALUES ((SELECT authorId FROM Authors WHERE Authors.firstName="\{{fullFirst}}" AND Authors.lastName="\{{fullLast}}"), <br/>
+                                            &nbsp;&nbsp; (SELECT articleId FROM Articles WHERE Articles.title = "\{{fullTitle}}" AND Articles.url = "<a>\{{fullUrl}}</a>"));<br/>
+                                            INSERT INTO PeriodicalArticles (periodicalId, articleId) VALUES ((SELECT periodicalId FROM Periodicals WHERE Periodicals.name="\{{fullPeriodicalName}}"), <br/>
+                                            &nbsp;&nbsp; (SELECT articleId FROM Articles WHERE Articles.title = "\{{fullTitle}}" AND Articles.url = "<a>\{{fullUrl}}</a>"));</p>
                     </article>
                 </div>
             </div>
@@ -128,10 +211,20 @@ var addApp = new Vue({
         articleTitle: '',
         articleContent: '',
         articleUrl: '',
+        articleDate: '',
+        articlePeriodicalName: '',
         periodicalName: '',
         firstName: '',
         lastName: '',
-        periodicalUrl: ''
+        periodicalUrl: '',
+        fullTitle: '',
+        fullContent: '',
+        fullUrl: '',
+        fullDate: '',
+        fullPeriodicalName: '',
+        fullFirst: '',
+        fullLast: '',
+        fullTopic: ''
     }
 })
 </script>

@@ -55,6 +55,11 @@ table{
     font-size: 36px;
     cursor: pointer;
 }
+
+label{
+    margin-top: 1rem;
+}
+
 .progress.is-small:indeterminate{
     animation-duration: 0.3s
 }
