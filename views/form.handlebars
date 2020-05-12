@@ -29,7 +29,7 @@
                                         <input v-model="articleDate" style="width: 25%;" class="input" type="date"/>
                                     </div>
                                     <div class="control">
-                                        <button class="button is-success" style="margin-top: 2rem;" onclick="showAlert();">Add Article</button>
+                                        <button class="button is-success" style="margin-top: 2rem;" v-on:click="sendArticleForm">Add Article</button>
                                     </div>
                                 </form>
                             </section>
@@ -48,6 +48,9 @@
                             INSERT INTO Articles (title, content, url, date, periodicalId) VALUES ("<span style="color:mediumseagreen">\{{articleTitle}}</span>", "<span style="color:rgb(137, 235, 181)">\{{articleContent}}</span>", <br/>
                             &nbsp;&nbsp; "<a>\{{articleUrl}}</a>", STR_TO_DATE("<span style="color:rgb(71, 255, 141)">\{{articleDate}}</span>", '%Y-%m-%d'), (SELECT periodicalId FROM Periodicals WHERE name="<span style="color:rgb(172, 127, 218)">\{{articlePeriodicalName}}</span>")) <br/>
                             &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Articles.articleId=Articles.articleId;</p>
+                        <br/>
+                        <br/>
+                        <span class="is-size-7 is-family-monospace" style="white-space: pre;">\{{articleResponseText}}</span>
                     </article>
                 </div>
             </div>
@@ -70,7 +73,7 @@
                                         <input v-model="lastName" class="input" style="width: 50%;" type="text" placeholder="Last Name"/>
                                     </div>
                                     <div class="control">
-                                        <button class="button is-success" style="margin-top: 2rem;" onclick="showAlert();">Add Author</button>
+                                        <button class="button is-success" style="margin-top: 2rem;" v-on:click="sendAuthorForm">Add Author</button>
                                     </div>
                                 </form>
                             </section>
@@ -82,7 +85,11 @@
             <div class="tile">
                 <div class="tile is-parent is-vertical">
                     <article class="tile is-child has-background-dark has-text-light">
-                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">INSERT INTO Authors (firstName, lastName) VALUES ("<span style="color:turquoise">\{{firstName}}</span>", "<span style="color:turquoise">\{{lastName}}</span>") ON DUPLICATE KEY UPDATE Authors.authorId=Authors.authorId;</p>
+                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">
+                            INSERT INTO Authors (firstName, lastName) VALUES ("<span style="color:turquoise">\{{firstName}}</span>", "<span style="color:turquoise">\{{lastName}}</span>") ON DUPLICATE KEY UPDATE Authors.authorId=Authors.authorId;</p>
+                        <br/>
+                        <br/>
+                        <span class="is-size-7 is-family-monospace" style="white-space: pre;">\{{authorResponseText}}</span>
                     </article>
                 </div>
             </div>
@@ -105,7 +112,7 @@
                                         <input v-model="periodicalUrl" class="input" type="text" placeholder="Don't lie to us"/>
                                     </div>
                                     <div class="control">
-                                        <button class="button is-success" style="margin-top: 2rem;" onclick="showAlert();">Add Periodical</button>
+                                        <button class="button is-success" style="margin-top: 2rem;" v-on:click="sendPeriodicalForm">Add Periodical</button>
                                     </div>
                                     
                                 </form>
@@ -118,7 +125,11 @@
             <div class="tile">
                 <div class="tile is-parent is-vertical">
                     <article class="tile is-child has-background-dark has-text-light">
-                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">INSERT INTO Periodicals (name, url) VALUES ("<span style="color:rgb(172, 127, 218)">\{{periodicalName}}</span>", "<a>\{{periodicalUrl}}</a>") ON DUPLICATE KEY UPDATE Periodicals.periodicalId=Periodicals.periodicalId;</p>
+                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">
+                            INSERT INTO Periodicals (name, url) VALUES ("<span style="color:rgb(172, 127, 218)">\{{periodicalName}}</span>", "<a>\{{periodicalUrl}}</a>") ON DUPLICATE KEY UPDATE Periodicals.periodicalId=Periodicals.periodicalId;</p>
+                        <br/>
+                        <br/>
+                        <span class="is-size-7 is-family-monospace" style="white-space: pre;">\{{periodicalResponseText}}</span>
                     </article>
                 </div>
             </div>
@@ -165,7 +176,7 @@
                                         <input v-model="fullTopic" class="input" style="width: 50%;" type="text" placeholder="Keep it broad"/>
                                     </div>
                                     <div class="control">
-                                        <button class="button is-danger" style="margin-top: 2rem;" onclick="showAlert();">Break Everything</button>
+                                        <button class="button is-danger" style="margin-top: 2rem;" v-on:click="sendFullArticleForm">Break Everything</button>
                                     </div>
                                     
                                 </form>
@@ -178,20 +189,24 @@
             <div class="tile">
                 <div class="tile is-parent is-vertical">
                     <article class="tile is-child has-background-dark has-text-light">
-                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">INSERT INTO Topics SET name = "<span style="color:yellow">\{{fullTopic}}</span>" <br/>
-                                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Topics.topicId=Topics.topicId;<br/>
-                                            INSERT INTO Periodicals SET name="<span style="color:rgb(172, 127, 218)">\{{fullPeriodicalName}}</span>" <br/>
-                                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Periodicals.periodicalId=Periodicals.periodicalId;<br/>
-                                            INSERT INTO Articles (title, content, url, date, periodicalId) VALUES ("<span style="color:mediumseagreen">\{{fullTitle}}</span>", "<span style="color:rgb(137, 235, 181)">\{{fullContent}}</span>", "<a>\{{fullUrl}}</a>", STR_TO_DATE("<span style="color:rgb(71, 255, 141)">\{{fullDate}}</span>", '%Y-%m-%d')),<br/> 
-                                            &nbsp;&nbsp; (SELECT periodicalId FROM Periodicals WHERE Periodicals.name="<span style="color:rgb(172, 127, 218)">\{{fullPeriodicalName}}</span>"))<br/> 
-                                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Articles.articleId=Articles.articleId;<br/>
-                                            INSERT INTO Authors (firstName, lastName) VALUES ("<span style="color:turquoise">\{{fullFirst}}</span>", "<span style="color:turquoise">\{{fullLast}}</span>") ON DUPLICATE KEY UPDATE Authors.authorId=Authors.authorId;<br/>
-                                            INSERT INTO ArticleTopics (articleId, topicId) VALUES ((SELECT articleId FROM Articles WHERE Articles.title="<span style="color:mediumseagreen">\{{fullTitle}}</span>" AND Articles.url="<a>\{{fullUrl}}</a>"), <br/>
-                                            &nbsp;&nbsp; (SELECT topicId FROM Topics WHERE Topics.name="<span style="color:yellow">\{{fullTopic}}</span>"));<br/>
-                                            INSERT INTO AuthorArticles (authorId, articleId) VALUES ((SELECT authorId FROM Authors WHERE Authors.firstName="<span style="color:turquoise">\{{fullFirst}}</span>" AND Authors.lastName="<span style="color:turquoise">\{{fullLast}}</span>"), <br/>
-                                            &nbsp;&nbsp; (SELECT articleId FROM Articles WHERE Articles.title = "<span style="color:mediumseagreen">\{{fullTitle}}</span>" AND Articles.url = "<a>\{{fullUrl}}</a>"));<br/>
-                                            INSERT INTO PeriodicalArticles (periodicalId, articleId) VALUES ((SELECT periodicalId FROM Periodicals WHERE Periodicals.name="<span style="color:rgb(172, 127, 218)">\{{fullPeriodicalName}}</span>"), <br/>
-                                            &nbsp;&nbsp; (SELECT articleId FROM Articles WHERE Articles.title = "<span style="color:mediumseagreen">\{{fullTitle}}</span>" AND Articles.url = "<a>\{{fullUrl}}</a>"));</p>
+                        <p class="is-size-7 is-family-monospace" style="padding: 20px;">
+                            INSERT INTO Topics SET name = "<span style="color:yellow">\{{fullTopic}}</span>" <br/>
+                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Topics.topicId=Topics.topicId;<br/>
+                            INSERT INTO Periodicals SET name="<span style="color:rgb(172, 127, 218)">\{{fullPeriodicalName}}</span>" <br/>
+                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Periodicals.periodicalId=Periodicals.periodicalId;<br/>
+                            INSERT INTO Articles (title, content, url, date, periodicalId) VALUES ("<span style="color:mediumseagreen">\{{fullTitle}}</span>", "<span style="color:rgb(137, 235, 181)">\{{fullContent}}</span>", "<a>\{{fullUrl}}</a>", STR_TO_DATE("<span style="color:rgb(71, 255, 141)">\{{fullDate}}</span>", '%Y-%m-%d'),<br/> 
+                            &nbsp;&nbsp; (SELECT periodicalId FROM Periodicals WHERE Periodicals.name="<span style="color:rgb(172, 127, 218)">\{{fullPeriodicalName}}</span>"))<br/> 
+                            &nbsp;&nbsp; ON DUPLICATE KEY UPDATE Articles.articleId=Articles.articleId;<br/>
+                            INSERT INTO Authors (firstName, lastName) VALUES ("<span style="color:turquoise">\{{fullFirst}}</span>", "<span style="color:turquoise">\{{fullLast}}</span>") ON DUPLICATE KEY UPDATE Authors.authorId=Authors.authorId;<br/>
+                            INSERT INTO ArticleTopics (articleId, topicId) VALUES ((SELECT articleId FROM Articles WHERE Articles.title="<span style="color:mediumseagreen">\{{fullTitle}}</span>" AND Articles.url="<a>\{{fullUrl}}</a>"), <br/>
+                            &nbsp;&nbsp; (SELECT topicId FROM Topics WHERE Topics.name="<span style="color:yellow">\{{fullTopic}}</span>"));<br/>
+                            INSERT INTO AuthorArticles (authorId, articleId) VALUES ((SELECT authorId FROM Authors WHERE Authors.firstName="<span style="color:turquoise">\{{fullFirst}}</span>" AND Authors.lastName="<span style="color:turquoise">\{{fullLast}}</span>"), <br/>
+                            &nbsp;&nbsp; (SELECT articleId FROM Articles WHERE Articles.title = "<span style="color:mediumseagreen">\{{fullTitle}}</span>" AND Articles.url = "<a>\{{fullUrl}}</a>"));<br/>
+                            INSERT INTO PeriodicalArticles (periodicalId, articleId) VALUES ((SELECT periodicalId FROM Periodicals WHERE Periodicals.name="<span style="color:rgb(172, 127, 218)">\{{fullPeriodicalName}}</span>"), <br/>
+                            &nbsp;&nbsp; (SELECT articleId FROM Articles WHERE Articles.title = "<span style="color:mediumseagreen">\{{fullTitle}}</span>" AND Articles.url = "<a>\{{fullUrl}}</a>"));</p>
+                        <br/>
+                        <br/>
+                        <span class="is-size-7 is-family-monospace" style="white-space: pre;">\{{fullArticleResponseText}}</span>
                     </article>
                 </div>
             </div>
@@ -202,6 +217,18 @@
 <script>
 function showAlert(){
     alert("")
+}
+
+async function postReq(url='', data={}){
+  const response = await fetch(url,{
+    method: "POST",
+    headers:{
+      'Content-Type':'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  
+  return response.json()
 }
 
 var addApp = new Vue({
@@ -223,7 +250,97 @@ var addApp = new Vue({
         fullPeriodicalName: '',
         fullFirst: '',
         fullLast: '',
-        fullTopic: ''
+        fullTopic: '',
+        articleResponseText: '',
+        authorResponseText: '',
+        periodicalResponseText: '',
+        fullArticleResponseText: ''
+    },
+    methods:{
+    sendArticleForm: async function(event){
+        event.preventDefault();
+        var jsonObj = {
+            "periodicalName": this.articlePeriodicalName,
+            "title": this.articleTitle,
+            "content": this.articleContent,
+            "date": this.articleDate,
+            "url": this.articleUrl
+        }
+        var response = await postReq('/api/sendArticleForm', jsonObj)
+        var keys = Object.keys(response)
+        for(i=0;i<response.length;i++){
+        let keys = Object.keys(response[i])
+        for(j=0;j<keys.length;j++){
+        if(j==0){
+        this.articleResponseText += `
+        `
+        }
+        this.articleResponseText += `${keys[j]}: ${response[i][keys[j]]}
+        `
+            }
+        }
+    },
+    sendAuthorForm: async function(event){
+        event.preventDefault();
+        var jsonObj = {
+            "firstName": this.firstName,
+            "lastName": this.lastName
+        }
+        var response = await postReq('/api/sendAuthorForm', jsonObj)
+        var keys = Object.keys(response)
+        for(i=0;i<keys.length;i++){
+                if(i==0){
+        this.authorResponseText += `
+        `
+        }
+        this.authorResponseText += `${keys[i]}: ${response[keys[i]]}
+        `
+            }
+    },
+    sendPeriodicalForm: async function(event){
+        event.preventDefault();
+        var jsonObj = {
+            "periodicalName": this.periodicalName,
+            "periodicalUrl": this.periodicalUrl
+        }
+        var response = await postReq('/api/sendPeriodicalForm', jsonObj)
+        var keys = Object.keys(response)
+        for(i=0;i<keys.length;i++){
+        if(i==0){
+        this.periodicalResponseText += `
+        `
+        }
+        this.periodicalResponseText += `${keys[i]}: ${response[keys[i]]}
+        `
+            }
+    },
+    sendFullArticleForm: async function(event){
+        event.preventDefault();
+        var jsonObj = {
+            "title": this.fullTitle,
+            "url": this.fullUrl,
+            "content": this.fullContent,
+            "firstName": this.fullFirst,
+            "lastName": this.fullLast,
+            "periodicalName": this.fullPeriodicalName,
+            "date": this.fullDate,
+            "topic": this.fullTopic
+        }
+        var response = await postReq('/api/sendFullArticleForm', jsonObj)
+        for(i=0;i<response.length;i++){
+        let keys = Object.keys(response[i])
+        for(j=0;j<keys.length;j++){
+        if(j==0){
+        this.fullArticleResponseText += `
+        `
+        }
+        this.fullArticleResponseText += `${keys[j]}: ${response[i][keys[j]]}
+        `
+            }
+        }
+
     }
+    }
+
 })
 </script>
