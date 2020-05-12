@@ -289,32 +289,6 @@ function setUserBoxes(response, checkboxes) {
   }
 }
 
-function spliceTopics(response){
-  for(i=0;i<response.length;i++){
-    for(j=0;j<response.length;j++){
-      if((response[i].articleId == response[j].articleId) && (i != j)){
-        if(response[i].hasOwnProperty("topicString")){
-          response[i].topicString += " | "
-          response[i].topicString += response[j].topic.toString()
-          response[i].topics.push(response[j].topic)
-          response.splice(j, 1)
-        }
-        else{
-          response[i].topics = []
-          response[i].topics.push(response[i].topic)
-          response[i].topics.push(response[j].topic)
-          topicString = ""
-          topicString += response[i].topic.toString()
-          topicString += " | "
-          topicString += response[j].topic.toString()
-          response[i].topicString = topicString
-          response.splice(j,1)
-        }
-      }
-    }
-  }
-}
-
 function makeLoadingBar(initial, message){
     let articleList = clearAllAndReturn("#articleList")
     let loadStatusText = makeNode("p", [{"className":"subtitle"}, {"innerText":message}, {"id":"loadStatusText"}])
@@ -373,7 +347,6 @@ function makeUserArticleHistorySidebar(response) {
   var userArticleHistoryList = clearAllAndReturn("#recent-articles");
   isLoadingBar = false
   userArticleHistoryList.appendChild(ul);
-  // getUserTopics(checkboxes);
 }
 
 function clearAllAndReturn(query){
@@ -505,6 +478,7 @@ function appendThese(node, childNodes){
 
 async function makeArticlesPage(response, amount, startingIndex) {    // WARNING! This function is super fragile and prone to breakage!
   setLoadingBar(90, "Generating list...");                            // There is a very delicate balance at play keeping these variables
+  
   var list = document.createElement("ul");                            // from being undefined. Most of it has to do with setting object properties
   if (response.length == 0) {                                         // equal to important identifying variables and in some cases setting their
     displayNoArticles();                                              // parent elements as a property, or storing elements that undergo async operations in arrays.                                                                      
@@ -576,10 +550,11 @@ async function makeArticlesPage(response, amount, startingIndex) {    // WARNING
             })
 
             let spanForNonUserTopics = makeNode("span",                         // This is the light-colored tags that show next to the user's tags. 
-                [{"articleId":response[i].articleId},                           
+                [{"articleId":response[i].articleId},       
+                {"id":`nonUserSpan${response[i].articleId}`},                    
                 {"topic":response[i].topic.split('&&&')},                       // Topics are returned as GROUP_CONCAT(Topics.name SEPARATOR '&&&') 
-              {"className":"tag is-dark is-uppercase topicButton"},             //                       ['&&&' seemed like an unlikely enough three characters to use]
-            {"textContent":""}])
+                {"className":"tag is-dark is-uppercase topicButton"},             //                  ['&&&' seemed like an unlikely enough three characters to use]
+                {"textContent":""}])
 
             spanForNonUserTopics.style.display = "none"                         // Not displayed by default to avoid ugly empty space.
 
@@ -632,17 +607,34 @@ async function openTopicPreview(button){
   jsonObj["topic"] = button.topic
 
   var singleTopicList = await postReq('/api/getJustOneTopic', jsonObj)
+  var relatedTopics = await postReq('/api/getRelatedTopics', jsonObj)
 
   var modalParent = makeNode("div", [{"className":"modal"}])                // This uses Bulma's modal popup. Looks like a lot of stuff but it's really not.
 
-  var modalBg = makeNode("div", [{"className":"modal-background"}])       // Faded background
+  var modalBg = makeNode("div", [{"className":"modal-background"}])         // Faded background
 
-  var modalCard = makeNode("div", [{"className":"modal-card"}])           // Card body
+  var modalCard = makeNode("div", [{"className":"modal-card"}])             // Card body
 
-  var modalHeader = makeNode("header", [{"className":"modal-card-head"}]) // Header
+  var modalHeader = makeNode("header", [{"className":"modal-card-head"}])   // Header
 
   var modalTitle = makeNode("p", [{"className":"modal-card-title"}, 
   {"textContent":button.topic}])
+
+  var relTopicDiv = makeNode("div", [{"className":"relTopicsDiv"}])
+  if(relatedTopics.length > 0){
+    var relTopicTags = makeNode("div", [{"className":"tags"}, {"style":"padding-bottom: 1.5rem !important;"}])
+    var relTopicTitle = makeNode("p", [{"className":"subtitle is-size-6"}, {"textContent":"Related Topics"}, {"style":"padding-right: 10px; margin-bottom: 0.5rem !important;"}])
+    relTopicDiv.appendChild(relTopicTitle)
+    for(i=0;i<relatedTopics.length;i++){
+      let relTopicTag = makeNode("a", [{"className":"tag is-info is-uppercase"}, {"textContent":relatedTopics[i].topic}, {"topic":relatedTopics[i].topic}, {"topicId":relatedTopics[i].topicId}])
+      relTopicTag.addEventListener("click", function(){
+        document.body.removeChild(modalParent)
+        openTopicPreview(relTopicTag)
+      })
+      relTopicTags.appendChild(relTopicTag)
+    }
+    relTopicDiv.appendChild(relTopicTags)
+  }
 
   var exitModal = makeNode("button", [{"className":"delete"}, {"aria-label":"close"}])
 
@@ -705,6 +697,7 @@ async function openTopicPreview(button){
 
     periodicalCell.appendChild(periodicalCellText)
   }
+  modalSection.appendChild(relTopicDiv)
   modalSection.appendChild(articleTable)
   var modalFooterButton = makeNode("button", [{"className":modalFooterButtonClass}, 
     {"innerText":modalFooterButtonText}, 
@@ -879,6 +872,8 @@ async function sendNewTopic(topic, button){
     "articleId":button.articleId,
     "topic":button.topic
   }
+  console.log(button)
+  
   var response = await postReq("/api/addTopic", jsonObj)
   let jsonObj2 = {
     "articleId":button.articleId
@@ -886,6 +881,7 @@ async function sendNewTopic(topic, button){
   var newTopicList = await postReq("/api/topicsForSingleArticle", jsonObj)
   var userTopics = await getReq("/api/getUserTopics")
   var topicList = document.querySelector(`#topicList${jsonObj2["articleId"]}`)
+  console.log(topicList)
   var isAlreadyThere = false
   for(i=1;i<topicList.children.length;i++){
     if(topicList.children[i].textContent == topic){

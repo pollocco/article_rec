@@ -59,8 +59,10 @@
             </section>
             {{/if}}
             {{#if isLoggedIn}}
-            <section class="level">
+            <nav class="level">
+                <nav class="navbar">
                 <div class="level-left">
+                    <div class="level-item">
                 <div class="dropdown">
                     <div class="dropdown-trigger level-item">
                         <button class="button" aria-haspopup="true" aria-controls="dropdown-menu2"
@@ -101,8 +103,20 @@
                         </div>
                     </div>
                     </div>
+
                     </div>
-            </section>
+                    </div>
+                    {{#if atForm}}
+                    <p class="level-item">
+                        <a class="button is-dark" href="/" style='margin-right: 0.5rem; font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;'>Go Home</a>
+                    </p>
+                    {{/if}}
+                    {{#if notAtForm}}
+                    <p class="level-item">
+                        <a class="button is-dark" href="/form" style='margin-right: 0.5rem; font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;'>Add to our database</a>
+                    </p>
+                    {{/if}}
+            </nav>
             {{/if}}
         </div>
     </section>

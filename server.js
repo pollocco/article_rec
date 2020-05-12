@@ -38,6 +38,27 @@ app.get('/index', function(req, res){
     res.render('index', context)
 });
 
+app.get('/form', function(req,res){
+    var context = {}
+    if(req.session.loggedin){
+        context.message = "Hey there " + req.session.username;
+        context.user = req.session.username;
+        context.isLoggedOut = false;
+        context.isLoggedIn = true;
+    }
+    else if(req.session.isRegistered){
+        context.message = "You're all signed up " + req.session.regEmail + ". Be even cooler if you signed in.";
+        context.isLoggedOut = true;
+    }
+    else{
+        context.message = "Please sign in or register to continue"
+        context.isLoggedOut = true;
+    }
+    context.atForm = true
+    context.notAtForm = false
+    res.render('form', context)
+})
+
 
 app.get('/', function(req, res){
     var context = {}
@@ -55,6 +76,8 @@ app.get('/', function(req, res){
         context.message = "Please sign in or register to continue"
         context.isLoggedOut = true;
     }
+    context.atForm = false;
+    context.notAtForm = true
     res.render('home', context)
 });
 
@@ -78,6 +101,8 @@ app.get('/user', function(req, res){
         res.render('home', context);
         return;
     }
+    context.atForm = false;
+    context.notAtForm = true
     res.render('user', context);
 });
 
@@ -383,6 +408,8 @@ router.post('/topicsForSingleArticle', function(req, res, next){
     })
 })
 
+
+
 router.post('/allTopicsForArticles', function(req, res, next){
     var articleIds = req.body.articleIds
     var topics = req.body.topics
@@ -621,6 +648,20 @@ router.get('/searchTitles', function(req, res, next){
                 arr.push(result[i].title)
             }
             res.send(arr)
+        }
+    })
+})
+
+router.post('/getRelatedTopics', function(req, res, next){
+    var topic = req.body.topic
+    mysql.pool.query('SELECT TopicTopics.relatedTopic as topicId, Topics.name as topic FROM `TopicTopics` '+
+    'JOIN Topics ON TopicTopics.relatedTopic=Topics.topicId ' +
+    'WHERE TopicTopics.topicId=(SELECT topicId FROM Topics WHERE name=?)', [topic], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
         }
     })
 })
