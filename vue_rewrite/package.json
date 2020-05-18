@@ -1,0 +1,33 @@
+{
+  "name": "article_rec",
+  "version": "0.0.5",
+  "description": "",
+  "main": "article.js",
+  "scripts": {
+    "start": "node server.js 8080",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Connor Pollock, Matthew Spencer",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^4.0.1",
+    "body-parser": "^1.13.3",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.13.2",
+    "express-handlebars": "4.0.4",
+    "express-react-views": "^0.11.0",
+    "express-session": "1.17.1",
+    "forever": "^2.0.0",
+    "jsonfile": "^6.0.1",
+    "lit-element": "^2.3.1",
+    "mysql": "2.18.1",
+    "nodom": "^2.4.0",
+    "postman": "^0.2.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "request": "^2.88.2",
+    "unirest": "^0.6.0",
+    "xmlhttprequest": "^1.8.0"
+  }
+}
