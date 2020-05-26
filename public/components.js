@@ -9,13 +9,13 @@ Vue.component('history-sidebar',{
   <ul>
     <li v-if="articles.length > 0" v-for="(article, index) in articles" v-bind:key="key(article.articleId, index)">
       <span class="subtitle is-6"><strong>{{article.title}}</strong></span>
-      <br/>
       <span v-if="article.content != null" class="content sidebarBlurb">
+        <br/>
         {{article.content.substr(0,100) + '...'}}
       </span>
       <br/>
       <span class="last-viewed">
-       🕙 <em>{{toLocalTime(article.lastViewed)}}</em>
+       🕙 {{toLocalTime(article.lastViewed)}}
       </span>
       <br/>
       <a class="read-again" :href="article.url" :id="article.articleId" v-on:click="$emit('setuserarticle', $event, article.articleId)" target="_blank">Read Again &nbsp; <i class='fas fa-share'></i></a>
