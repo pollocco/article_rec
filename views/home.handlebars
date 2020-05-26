@@ -1,7 +1,8 @@
 {{#if isLoggedIn}}
 <div id="article-list">
     <transition name="fade">
-    <topic-modal v-show="showTopicModal" :topic="activeTopic"></topic-modal></transition>
+        <topic-modal v-show="showTopicModal" :topic="activeTopic"></topic-modal>
+    </transition>
     <article-preview v-show="showArticleModal" :article="activeArticle" :topiclist="topics"></article-preview>
     <section class="section mainApp">
 
@@ -11,74 +12,70 @@
                     <div class="tile is-vertical is-12">
                         <div class="tile is-parent">
                             <div>
-                                <div class="title">My Articles   
-                <button class="button is-primary" id="addNewArticleButton"><a href="/form" style="color:white !important">Add Article</a></button>
-                <div class="dropdown" id="filterDrop">
-                    <div class="dropdown-trigger">
-                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu2"
-                            onclick="filterDrop();">
-                            <span class="icon is-small">
-                                <i class="fas fa-cog"></i>
-                            </span>
-                            <span>Filter</span>
-                            <span class="icon is-small">
-                                <i class="fas fa-angle-down" aria-hidden="true"></i>
-                            </span>
-                        </button>
-                    </div>
-                    <div class="dropdown-menu" id="dropdown-menu-filters" role="menu">
-                        <div class="dropdown-content" id="dropdown-content">
-                            <div class="dropdown-item" style="padding:0;">
-                                <div id="filter-body">
-                                    <p class="panel-tabs is-size-6">
-                                        <a id="periodicalsTab" class="is-active"
-                                            v-on:click="setPeriodicalsTab">Sources</a>
-                                        <a id="authorsTab" v-on:click="setAuthorsTab">Authors</a>
-                                    </p>
-                                    <div class="panel-block">
-                                        <div>
-                                            <div class="panel-block">
-                                                <div v-show="isperiodical === true" >
-                                                    <filter-table 
-                                                        :filters="periodicalArticles.map(
+                                <div class="title">My Articles
+                                    <button class="button is-primary" id="addNewArticleButton"><a href="/form"
+                                            style="color:white !important">Add Article</a></button>
+                                    <div class="dropdown" id="filterDrop">
+                                        <div class="dropdown-trigger">
+                                            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu2"
+                                                onclick="filterDrop();">
+                                                <span class="icon is-small">
+                                                    <i class="fas fa-cog"></i>
+                                                </span>
+                                                <span>Filter</span>
+                                                <span class="icon is-small">
+                                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                                </span>
+                                            </button>
+                                        </div>
+                                        <div class="dropdown-menu" id="dropdown-menu-filters" role="menu">
+                                            <div class="dropdown-content" id="dropdown-content">
+                                                <div class="dropdown-item" style="padding:0;">
+                                                    <div id="filter-body">
+                                                        <p class="panel-tabs is-size-6">
+                                                            <a id="periodicalsTab" class="is-active"
+                                                                v-on:click="setPeriodicalsTab">Sources</a>
+                                                            <a id="authorsTab" v-on:click="setAuthorsTab">Authors</a>
+                                                        </p>
+                                                        <div class="panel-block">
+                                                            <div>
+                                                                <div class="panel-block">
+                                                                    <div v-show="isperiodical === true">
+                                                                        <filter-table :filters="periodicalArticles.map(
                                                             function(p){
                                                                 return{
                                                                     name: p.periodicalName,
                                                                     filterid: p.periodicalId,
                                                                     numberofarticles: p.numberOfArticles
                                                                 }
-                                                            })"
-                                                        :arraymodel="periodicalarray"
-                                                        v-on:togglefilter="toggleFilter"
-                                                    />
-                                                </div>
-                                                <div v-show="isperiodical === false" class="table">
-                                                    <filter-table
-                                                        :filters="authorArticles.map(
+                                                            })" :arraymodel="periodicalarray"
+                                                                            v-on:togglefilter="toggleFilter" />
+                                                                    </div>
+                                                                    <div v-show="isperiodical === false" class="table">
+                                                                        <filter-table :filters="authorArticles.map(
                                                             function(a){
                                                                 return{
                                                                     name: a.lastName.toUpperCase().trim() + ', ' + a.firstName.trim(),
                                                                     filterid: a.authorId,
                                                                     numberofarticles: a.numberOfArticles
                                                                 }
-                                                            })"
-                                                        :arraymodel="authorarray"
-                                                        v-on:togglefilter="toggleFilter"
-                                                    />
+                                                            })" :arraymodel="authorarray"
+                                                                            v-on:togglefilter="toggleFilter" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="panel-block">
+                                                            <button class="button is-link is-outlined is-fullwidth"
+                                                                id="resetButton">
+                                                                Reset all filters
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="panel-block">
-                                        <button class="button is-link is-outlined is-fullwidth" id="resetButton">
-                                            Reset all filters
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                                 </div>
                                 <p class="control has-icons-left">
                                     <input class="input is-medium" name="q" id="searchBox" tabIndex="1" type="text"
@@ -87,61 +84,58 @@
                                         <i class="fas fa-search"></i>
                                     </span>
                                     <transition-group name="list">
-                                    <div v-show="!isUserTopics">
-                                        <div class="tile is-parent is-vertical box" style="padding: 60px; text-align: center;">
-                                            <p class="title">
-                                                We don't have any articles for you yet!
-                                            </p>
-                                            <p class="subtitle">
-                                                Pick some topics to get started
-                                            </p>
-                                            
-                                            <p class="columns is-centered">
-                                                <span id="noteIcon" class="icon column is-centered is-large">
-                                                    <i class="far fa-hand-point-right"></i>
-                                                </span>
-                                                
-                                            </p>
-                                            <p>
-                                            </p>
+                                        <div v-show="!isUserTopics">
+                                            <div class="tile is-parent is-vertical box"
+                                                style="padding: 60px; text-align: center;">
+                                                <p class="title">
+                                                    We don't have any articles for you yet!
+                                                </p>
+                                                <p class="subtitle">
+                                                    Pick some topics to get started
+                                                </p>
+
+                                                <p class="columns is-centered">
+                                                    <span id="noteIcon" class="icon column is-centered is-large">
+                                                        <i class="far fa-hand-point-right"></i>
+                                                    </span>
+
+                                                </p>
+                                                <p>
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
                                     </transition-group>
                                 </p>
                                 <article class="is-child tile box" id="articleContainer">
                                     <ul>
                                         <transition-group name="list">
-                                            <article-component  v-for="article in articles" 
-                                                                :article="article"
-                                                                :topiclist="topics" 
-                                                                v-bind:key="article.articleId" 
-                                                                class="list-item"
-                                                                v-on:setuserarticle="setUserArticle"
-                                                                v-on:changearticle="changeArticle"
-                                                                :isupdatearticle="false"
-                                            />
+                                            <article-component v-for="article in articles" :article="article"
+                                                :topiclist="topics" v-bind:key="article.articleId" class="list-item"
+                                                v-on:setuserarticle="setUserArticle" v-on:changearticle="changeArticle"
+                                                :isupdatearticle="false" />
                                         </transition-group>
                                         <p class="columns is-centered">
-                                                <i id="noteIcon" class="icon column is-centered is-large">
-                                                    
-                                                </i>
-                                            </p> 
+                                            <i id="noteIcon" class="icon column is-centered is-large">
+
+                                            </i>
+                                        </p>
                                     </ul>
-                               <span style="visibility: hidden;">
-                                                    hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
-                                                    hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
-                                                    hhhhhhhhhhhhhhhhhhhhhhhhhhhhh
-                                            </span>      
+                                    <span style="visibility: hidden;">
+                                        hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+                                        hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+                                        hhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+                                    </span>
                             </div>
-                                                      
+
                             </article>
-                            </div>
-                            <div class="is-child tile" id="pagination">
-                                <a :disabled="isPrevPageDisabled" v-on:click="goPrevPage" class="pagination-previous">Previous</a>
-                                
-                                <a :disabled="isNextPageDisabled" v-on:click="goNextPage" class="pagination-next">Next</a>
                         </div>
-                        
+                        <div class="is-child tile" id="pagination">
+                            <a :disabled="isPrevPageDisabled" v-on:click="goPrevPage"
+                                class="pagination-previous">Previous</a>
+
+                            <a :disabled="isNextPageDisabled" v-on:click="goNextPage" class="pagination-next">Next</a>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -150,19 +144,15 @@
                     <div class="tile is-vertical is-12">
                         <div class="tile is-parent">
                             <div class="tile is-child">
-                                                               <div class="box" id="topicsTile">
+                                <div class="box" id="topicsTile">
                                     <p class="title">My Topics &nbsp; 📝</p>
                                     <p class="subtitle">Customize your interests</p>
                                     <table class="table">
                                         <tr style="display:none;">
                                             <td style="display:none;"></td>
                                         </tr>
-                                        <topic-row  v-for="topic in topics" 
-                                                    :key="topic.topicId" 
-                                                    :topic="topic" 
-                                                    v-on:toggletopic="toggleTopic"
-                                                    :usertopics="userTopics" 
-                                        />
+                                        <topic-row v-for="topic in topics" :key="topic.topicId" :topic="topic"
+                                            v-on:toggletopic="toggleTopic" :usertopics="userTopics" />
                                     </table>
                                 </div>
                             </div>
@@ -170,7 +160,9 @@
                         <div class="tile is-parent">
                             <article class="tile is-child box">
                                 <p class="title">Recent Articles</p>
-                                <history-sidebar :articles="userArticles" v-on:setuserarticle="setUserArticle"></history-sidebar>
+                                <history-sidebar class="user-article-history-list" :articles="userArticles" v-on:setuserarticle="setUserArticle">
+                                </history-sidebar>
+                                <button class="button" style="display: block; margin: 0 auto;"><a href="/user">View all on user page</a></button>
                             </article>
                         </div>
                     </div>
@@ -182,21 +174,21 @@
 </div>
 <script>
     function filterDrop() {
-            var dropdown = document.querySelector('#filterDrop');
-            dropdown.classList.toggle('is-active');
-            var dropdownBody = document.querySelector('#filter-body')
-            
-            document.addEventListener('click', function (e) {
-                   dropdown.classList.remove('is-active')
-            })
-            dropdown.addEventListener('click', function(e){
-                e.stopPropagation()
-            })
-        }
+        var dropdown = document.querySelector('#filterDrop');
+        dropdown.classList.toggle('is-active');
+        var dropdownBody = document.querySelector('#filter-body')
+
+        document.addEventListener('click', function (e) {
+            dropdown.classList.remove('is-active')
+        })
+        dropdown.addEventListener('click', function (e) {
+            e.stopPropagation()
+        })
+    }
     function topicDrop() {
-            var dropdown = document.querySelector('#topicDrop');
-            dropdown.classList.toggle('is-active');
-        }
+        var dropdown = document.querySelector('#topicDrop');
+        dropdown.classList.toggle('is-active');
+    }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="https://unpkg.com/vuex@3.4.0/dist/vuex.js"></script>
@@ -213,36 +205,171 @@
         <div class="tile is-vertical">
             <div class="tile is-parent">
                 <div class="tile is-child">
-                    <p class="title box titleText">Welcome to our project page<br /><span
-                            class="subtitle subtitleText"><em>CS 340, Intro to Databases</em></span></p>
+                    <div class="box">
+                        <p class="title titleText">Welcome to our project page<br /></p>
+                        <p id="noteIcon">👋</p>
+                        <br/>
+                        <p class="subtitle asidetitleText"><button id="accountButton" class="button is-info" onclick="accountButton()">
+                            Make an account</button> to <em>check it out</em> <span class="subtitle is-6">(we won't actually e-mail you)</span>
+                            or <button id="loginButton" class="button" onclick="loginButton()">Login</button>
+                        </p>
+                        <script>
+                            function accountButton(){
+                                var userDropText = document.querySelector('#userDropText')
+                                
+                                if(document.querySelector('#userMenu').classList.contains('is-active')){
+                                    if(userDropText.textContent == "Register"){
+                                        document.querySelector('#userMenu').classList.remove('is-active')
+                                    }
+                                    else{
+                                        switchToRegister();
+                                    }
+                                }
+                                else{
+                                    toggleDrop();
+                                    switchToRegister();
+                                }
+                            }
+                            function loginButton(){
+                                if(document.querySelector('#userMenu').classList.contains('is-active')){
+                                    if(userDropText.textContent == "Login"){
+                                        document.querySelector('#userMenu').classList.remove('is-active')
+                                    }
+                                    else{
+                                        switchToLogin();
+                                    }    
+                                }
+                                else{
+                                    toggleDrop();
+                                    switchToLogin();
+                                }
+                            }
+                        </script>
+                        <p class="subtitle" style="text-align: center">This website was built with the following</p>
+                        <ul>
+                            <div class="columns">
+                                <div class="column is-4">
+                                    <span class="subtitle">🌎 <u>Server-side</u></span>
+                                    <ul class="credits-list">
+                                        <li>
+                                            Runtime engine:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://nodejs.org/en/" target="_blank">Node.js</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            Web frameworks:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://expressjs.com/" target="_blank">Express</a>
+                                                </li>
+                                                <li>
+                                                    <a
+                                                        href="https://www.npmjs.com/package/express-handlebars" target="_blank">Express-Handlebars</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            Database interaction:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://github.com/mysqljs/mysql" target="_blank">'mysql' module for
+                                                        Node</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            User credential encryption:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://www.npmjs.com/package/bcrypt" target="_blank">bcrypt</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="column is-4">
+                                    <span class="subtitle">💻 <u>Client-side</u></span>
+                                    <ul class="credits-list">
+                                        <li>
+                                            Javascript frameworks:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://vuejs.org/" target="_blank">Vue.js</a>
+                                                </li>
+                                                <li>
+                                                    <a href="https://vuex.vuejs.org/" target="_blank">Vuex</a> (state management)
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            CSS framework:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://bulma.io" target="_blank">Bulma</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            Auto-complete for search:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a
+                                                        href="https://goodies.pixabay.com/javascript/auto-complete/demo.html" target="_blank">Pixabay's
+                                                        autocomplete.js</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            Typography:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://fonts.google.com/" target="_blank">Google Fonts</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="column is-4">
+                                    <span class="subtitle">💾 <u>Database</u></span>
+                                    <ul class="credits-list">
+                                        <li>
+                                            Language:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://www.mysql.com/" target="_blank">MySQL</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            Schema/design:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://dbeaver.io/" target="_blank">DBeaver</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            Maintenance/GUI access:
+                                            <ul class="nested-list">
+                                                <li>
+                                                    <a href="https://www.phpmyadmin.net/" target="_blank">PhpMyAdmin</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
 
-                </div>
-            </div>
-            <div class="tile is-parent">
-                <div class="tile is-child">
-                    <p class="subtitle box">This website was built using Express-Handlebars. The database for the
-                        website was designed using DBeaver and written in MySQL. PhpMyAdmin was used for GUI access and
-                        maintenance (you know, when you have to delete everything). Bulma provides the wonderful CSS
-                        styling you see here before you.</p>
-                </div>
-            </div>
         </div>
-        <div class="tile is-vertical">
-            <div class="tile is-parent">
-                <div class="tile is-child">
-                    <article class="message">
-                        <div class="message-header">
-                            <p><strong>Did you know?</strong></p>
-                        </div>
-                        <div class="message-body">
-                            <em class="subtitle is-5" style="font-family: 'EB Garamond'">We're the best article
-                                recommender there is.</em></p>
-                            <p>Don't believe us? You probably shouldn't because this is an intro class</p>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </div>
+    </div>
+    </div>
     </div>
 </section>
 {{/if}}

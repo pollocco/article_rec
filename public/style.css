@@ -113,8 +113,23 @@ table{
     overflow-y: scroll;
 }
 
+.index-list{
+    list-style: square;
+    margin-left: 2rem;
+}
+
+.credits-list{
+    list-style: none;
+    margin-left: 1rem;
+}
+
 .addOrEdit{
     font-size: small;
+}
+
+.nested-list{
+    list-style: circle;
+    margin-left: 2.5rem;
 }
 
 #wizardAvatar{
@@ -127,7 +142,7 @@ table{
 
 #addTopicDiv{
     width: 20rem;
-    background-color: lavender;
+    background-color: rgb(233, 233, 233);
     padding: 1rem;
     border-radius: 1rem;
     margin-top: 10px;
@@ -155,10 +170,12 @@ table{
 
 
 #articleContainer{
-    max-height: 120vh;
+    max-height: 180vh;
     min-height: 90vh;
     overflow-y:scroll;
 }
+
+
 
 
 #checkboxLoader{
@@ -212,6 +229,13 @@ table{
     font-size: 2rem;
     font-family: 'EB Garamond', 'Source Serif Pro', 'Roboto Slab', Georgia, 'Times New Roman', Times, serif;
     color: gray !important;
+}
+
+.asidetitleText{
+    text-align: center;
+    font-size: 2rem;
+    font-family: 'EB Garamond', 'Source Serif Pro', 'Roboto Slab', Georgia, 'Times New Roman', Times, serif;
+    color: rgb(0, 0, 0) !important;
 }
 
 
@@ -287,8 +311,9 @@ a.topicButton.is-light:hover{
 .user-article-history-list {
     overflow: scroll;
     max-height: 800px;
-    margin-bottom: 50px;
+    margin-bottom: 10px;
 }
+
 .user-article-history-list .subtitle {
     margin-bottom: 0.3rem;
 }
@@ -308,9 +333,7 @@ a.topicButton.is-light:hover{
     font-size: 1rem;
 }
 
-.user-article-history-list .subtitle, .user-article-history-list .content {
-    display:block;
-}
+
 .user-article-history-list ul li {
     border-bottom: 1px solid #ccc;
     padding: 15px 0 15px;

@@ -1,3 +1,5 @@
+PAGE_SIZE = 10
+
 async function postReq(url='', data={}){
   const response = await fetch(url,{
     method: "POST",
@@ -62,7 +64,7 @@ const store = new Vuex.Store({
     },
     changeArticle(state, article){ 
       // This is called when an article is changed by a user (topic added, changed title, etc..)
-      
+
       var thisPage = state.pages[state.currentPage]
       article.topic = ""
 
@@ -191,7 +193,7 @@ const store = new Vuex.Store({
     },
 
     async getUserArticles({commit}){
-      var history = await getReq('/api/getUserArticlesHistory').catch(e=>{console.log(e)})
+      var history = await getReq('/api/getUserArticlesHistoryLimit3').catch(e=>{console.log(e)})
       commit('changeUserArticles', history)
     },
 
@@ -283,8 +285,6 @@ function makeNode(elementType, properties){
   }
   return element
 }
-
-PAGE_SIZE = 20
 
 var articleList = new Vue({
   el: "#article-list",

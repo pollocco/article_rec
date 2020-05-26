@@ -22,9 +22,9 @@
                 {{#if isLoggedOut}}
                 <div class="dropdown" id="userMenu">
                     <div class="dropdown-trigger">
-                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu2"
+                        <button id="userDropButton" class="button is-light" aria-haspopup="true" aria-controls="dropdown-menu2"
                             onclick="toggleDrop();">
-                            <span>Login</span>
+                            <span id="userDropText">Login</span>
                             <span class="icon is-small">
                                 <i class="fas fa-angle-down" aria-hidden="true"></i>
                             </span>
@@ -101,29 +101,42 @@
                             </div>
                         </div>
                     </div>
-                    {{#if atForm}}
-                        <button class="button is-danger" style="margin-left: 1rem;"><a href="/" style="color:white !important;">Go back</a></button>
+                    {{#if notAtHome}}
+                        <button class="button is-danger" style="margin-left: 1rem;"><a href="/" style="color:white !important;">Go back home</a></button>
                     {{/if}}
                 </div>
                 </div>
-            {{/if}}
                 <div class="column is-6">
                     <span class="title titleText">Article Recommender &nbsp; 📰</span><br/>
                     <span class="subtitle subtitleText"><em>CS 340 Intro to Databases,
                             Oregon State University</em></span>
                 </div>
+            {{/if}}
+                
             </div>
+            {{#if isLoggedOut}}
+            <div class="column is-12">
+                    <span class="title titleText">Article Recommender &nbsp; 📰</span><br/>
+                    <span class="subtitle subtitleText"><em>CS 340 Intro to Databases,
+                            Oregon State University</em></span>
+                </div>
+            {{/if}}
     </section>
     {{{body}}}
     <script>
         function toggleDrop() {
             var dropdown = document.querySelector('#userMenu');
             dropdown.classList.toggle('is-active');
-            document.addEventListener('click', function (e) {
-                if (!(dropdown.contains(e.target))) {
+            document.addEventListener('click', checkToggle);
+        }
+        function checkToggle(e){
+            var dropdown = document.querySelector('#userMenu');
+            var accountButton = document.querySelector('#accountButton')
+            var loginButton = document.querySelector('#loginButton')
+            var userDropText = document.querySelector('#userDropText')
+            if (!(dropdown.contains(e.target)) && !(e.target == accountButton) && !(event.target == loginButton)) {
                     dropdown.classList.remove('is-active')
-                }
-            })
+            }
         }
         function switchToLogin() {
             var loginLegend = document.querySelector('#loginLegend');
@@ -136,6 +149,12 @@
             var submit = document.querySelector('#submit');
             submit.textContent = "Login"
             submit.classList.replace("has-background-info", "is-light")
+            var userDropText = document.querySelector('#userDropText')
+            userDropText.textContent = "Login"
+            var userDropButton = document.querySelector('#userDropButton')
+            if(userDropButton.classList.contains('is-info')){
+                userDropButton.classList.remove('is-info')
+            }
         }
         function switchToRegister() {
             var loginLegend = document.querySelector('#loginLegend');
@@ -148,6 +167,12 @@
             var submit = document.querySelector('#submit');
             submit.textContent = "Sign Up"
             submit.classList.replace("is-light", "has-background-info")
+            var userDropText = document.querySelector('#userDropText')
+            userDropText.textContent = "Register"
+            var userDropButton = document.querySelector('#userDropButton')
+            if(!userDropButton.classList.contains('is-info')){
+                userDropButton.classList.add('is-info')
+            }
         }
         function switchWizard() {
             var wizard = document.querySelector('#wizardAvatar')

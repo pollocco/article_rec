@@ -385,8 +385,8 @@ Vue.component('article-component', {
           Content
           <textarea class="textarea" cols="100" v-model="article.content"></textarea>
         </div>
-        <button class="button is-light" v-on:click="cancelUpdate" style="margin-top: 1rem; ">Cancel</button>
-        <button class="button is-dark" v-on:click="updateArticle" style="margin-top: 1rem; margin-left: 1rem;">Save</button>
+        <button class="button is-dark" v-on:click="updateArticle" style="margin-top: 1rem; ">Save</button>
+        <button class="button" v-on:click="cancelUpdate" style="margin-top: 1rem; margin-left: 0.5rem;">Cancel</button>
         
       </div>
       <button class="button is-small" v-show="isupdatearticle === false">

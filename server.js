@@ -51,14 +51,14 @@ app.get('/form', function(req,res){
         context.message = "Please sign in or register to continue"
         context.isLoggedOut = true;
     }
-    context.atForm = true
+    context.notAtHome = true
     context.notAtForm = false
     res.render('form', context)
 })
 
 app.get('/index', function(req, res){
     var context = {}
-    context.atForm = false
+    context.notAtHome = false
     res.render('index', context)
 });
 
@@ -84,7 +84,7 @@ app.get('/', function(req, res){
         context.message = "Please sign in or register to continue"
         context.isLoggedOut = true;
     }
-    context.atForm = false
+    context.notAtHome = false
     res.render('home', context)
 });
 
@@ -108,7 +108,7 @@ app.get('/user', function(req, res){
         res.render('home', context);
         return;
     }
-    context.atForm = false
+    context.notAtHome = true
     res.render('user', context);
 });
 
@@ -766,6 +766,23 @@ router.get('/getUserArticlesHistory', function(req, res, next){
     'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
     'JOIN UserTopics ON Topics.topicId = UserTopics.topicId ' +
     'WHERE UserTopics.userId = ? GROUP BY Articles.articleId, UserArticles.userId ORDER BY UserArticles.lastViewed DESC', [userId], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send(result)
+        }
+    })
+});
+
+router.get('/getUserArticlesHistoryLimit3', function(req, res, next){
+    var userId = req.session.userId;
+    mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed, GROUP_CONCAT(Topics.name SEPARATOR " | ") as topic FROM Articles ' +
+    'JOIN UserArticles ON Articles.articleId = UserArticles.articleId  ' +
+    'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+    'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+    'JOIN UserTopics ON Topics.topicId = UserTopics.topicId ' +
+    'WHERE UserTopics.userId = ? GROUP BY Articles.articleId, UserArticles.userId ORDER BY UserArticles.lastViewed DESC LIMIT 3', [userId], function(error, result){
         if(error){
             console.log(error)
         }

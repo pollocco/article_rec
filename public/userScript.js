@@ -100,9 +100,11 @@ function makeUserArticleHistory(response){
         title.innerText = response[i].title;
         title.className = "subtitle";
 
-        let content = document.createElement("span");
-        content.innerText = response[i].content.substr(0,100) + " ... ";
-        content.className = "content";
+        let content = document.createElement("p");
+        if(response[i].content != null){
+            content.innerText = response[i].content.substr(0,100) + " ... ";
+            content.className = "content";
+        }
 
         let link = document.createElement("a");
         link.innerHTML = 'Read Again <i class="fas fa-share"></i>';
@@ -110,20 +112,22 @@ function makeUserArticleHistory(response){
         link.target = '_blank';
         link.className = "is-size-6 is-italic";
 
-        let lastViewed = document.createElement("span");
+        let lastViewed = document.createElement("p");
         let date = new Date(response[i].lastViewed)
 
         let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
         let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
         let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
-
         lastViewed.innerText = `Read on ${month} ${day} ${year} `;
         lastViewed.className = "is-size-6 is-italic last-viewed has-text-dark";
 
         let li =  document.createElement("li");
         li.appendChild(topic);
         li.appendChild(title);
-        // li.appendChild(content);
+        if(response[i].content != null){
+            li.appendChild(content);
+        }
+        
         li.appendChild(lastViewed);
         li.appendChild(link);
 
