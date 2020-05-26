@@ -99,12 +99,11 @@ function makeUserArticleHistory(response){
         let title = document.createElement("span");
         title.innerText = response[i].title;
         title.className = "subtitle";
-        if(response[i].hasOwnProperty("content") && response[i].content != null){
-            let content = document.createElement("span");
-            content.innerText = response[i].content.substr(0,100) + " ... ";
-            content.className = "content";
-        }
-        
+
+        let content = document.createElement("span");
+        content.innerText = response[i].content.substr(0,100) + " ... ";
+        content.className = "content";
+
         let link = document.createElement("a");
         link.innerHTML = 'Read Again <i class="fas fa-share"></i>';
         link.href = response[i].url;

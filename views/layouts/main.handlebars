@@ -10,14 +10,17 @@
 <div class="container" id="mainContent">
     <section class="hero is-light">
         <div class="hero-body">
-            <a href="/">
-                <h1 class="title" style="font-family: 'Lobster Two', cursive" id="header">The Non-Relational Data Mages
-                    <span role={"img"} aria-label={"crystal ball"}>🔮</span></h1>
-            </a>
-            <p class="subtitle" id="tagline">{{message}}</p>
-            {{#if isLoggedOut}}
-            <section class="level">
-                <div class="dropdown">
+            <div class="columns">
+                <div class="column is-6">
+                    <a href="/">
+                        <h1 class="title is-4" style="font-family: 'Lobster Two', cursive" id="header">The Non-Relational
+                            Data Mages
+                            <span role={"img"} aria-label={"crystal ball"}>🔮</span></h1>
+                            </a>
+                        <p class="subtitle" id="tagline">{{message}}</p>
+                    
+                {{#if isLoggedOut}}
+                <div class="dropdown" id="userMenu">
                     <div class="dropdown-trigger">
                         <button class="button" aria-haspopup="true" aria-controls="dropdown-menu2"
                             onclick="toggleDrop();">
@@ -56,16 +59,12 @@
                             </div>
                         </div>
                     </div>
-            </section>
+                    </div>
             {{/if}}
             {{#if isLoggedIn}}
-            <nav class="level">
-                <nav class="navbar">
-                <div class="level-left">
-                    <div class="level-item">
-                <div class="dropdown">
-                    <div class="dropdown-trigger level-item">
-                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu2"
+                <div class="dropdown" id="userMenu">
+                    <div class="dropdown-trigger">
+                        <button class="button is-light is-info" aria-haspopup="true" aria-controls="dropdown-menu2"
                             onclick="toggleDrop();">
                             <span>My Account</span>
                             <span class="icon is-small">
@@ -102,28 +101,23 @@
                             </div>
                         </div>
                     </div>
-                    </div>
-
-                    </div>
-                    </div>
                     {{#if atForm}}
-                    <p class="level-item">
-                        <a class="button is-dark" href="/" style='margin-right: 0.5rem; font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;'>Go Home</a>
-                    </p>
+                        <button class="button is-danger" style="margin-left: 1rem;"><a href="/" style="color:white !important;">Go back</a></button>
                     {{/if}}
-                    {{#if notAtForm}}
-                    <p class="level-item">
-                        <a class="button is-dark" href="/form" style='margin-right: 0.5rem; font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;'>Add to our database</a>
-                    </p>
-                    {{/if}}
-            </nav>
+                </div>
+                </div>
             {{/if}}
-        </div>
+                <div class="column is-6">
+                    <span class="title titleText">Article Recommender &nbsp; 📰</span><br/>
+                    <span class="subtitle subtitleText"><em>CS 340 Intro to Databases,
+                            Oregon State University</em></span>
+                </div>
+            </div>
     </section>
     {{{body}}}
     <script>
         function toggleDrop() {
-            var dropdown = document.querySelector('.dropdown');
+            var dropdown = document.querySelector('#userMenu');
             dropdown.classList.toggle('is-active');
             document.addEventListener('click', function (e) {
                 if (!(dropdown.contains(e.target))) {

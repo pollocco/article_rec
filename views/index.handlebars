@@ -3,49 +3,20 @@
     <h3 class="is-size-5" style="margin-bottom:30px;">Members: Connor Pollock, Matthew Spencer</h3>
 
     <h3 class="is-size-3">Pages</h3>
-    <dl style="margin-left:20px;">
-        <li><a class="subtitle" style="color: #3273dc;" href="/">https://datamages.drab.tech/</a></li>
-        <b>Main page with list of Articles</b>
-        <br/>
-        <u>Table features:</u>
-        <ul>
-            <li>
-                Select from/insert into ArticleTopics and Topics using <icon class="fas fa-plus"></icon> icon. 
-            <li>
-                Selects/inserts into TopicTopics (i.e. related topics), linking the original article topic and the newly added topic (click a topic tag to view related topics)
-            </li>
-            </li>
-            <li>
-                Search the article database with predictive text which uses MySQL LIKE query
-            </li>
-            <li>
-                Filter by periodical and author using SELECT * FROM ... WHERE Periodicals.periodicalId NOT IN ... AND Authors.authorId NOT IN ...
-            </li>
-        </ul>
-        <br/>
-        <li><a class="subtitle" style="color: #3273dc;" href="/user">https://datamages.drab.tech/user</a> </li>
-        <b>User page with history of Articles read</b>
-        <br/>
-        <u>Table features:</u>
-        <ul>
-            <li>
-                Select from/insert into/delete from UserTopics using checklist
-            </li>
-            <li>
-                Select from/insert into UserArticles for previously viewed articles. Updates on duplicate key to give most recent view.
-            </li>
-        </ul>
-        <br/>
-        <li><a class="subtitle" style="color: #3273dc;" href="/form">https://datamages.drab.tech/form</a></li>
-        <b>Add Articles, Authors, and Periodicals</b>
-        <br/>
-        <u>Table features:</u>
-        <ul>
-            <li>
-                Insert into articles, authors, and periodicals if one so chooses
-            </li>
-        </ul>
-    </dl>
+    <ol style="margin-left:20px;">
+        <li><a href="/">https://datamages.uc.r.appspot.com/</a> Main page with list of Articles</li>
+        <li><a href="/user">https://datamages.uc.r.appspot.com/user</a> User page with history of Articles read</li>
+    </ol>
 
     <br />
     <br />
+
+    <h3 class="is-size-3">Notes About the App</h3>
+    <ol style="margin-left:20px;">
+        <li>We are currently hosting our project outside of the engineering server due to it’s version of node not
+            supporting some current features.</li>
+        <li>There are 2 main views for our app, ‘/’ and ‘/user’. You can access them from the dropdown menu.</li>
+        <li>You must have a valid user session to see everything. You can register a username and then login. Currently
+            there is no handling for attempting to register an existing username and it will silently fail. <strong>Make
+                sure to register a unique email address to successfully create an account</strong>.</li>
+    </ol>
