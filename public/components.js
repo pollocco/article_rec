@@ -1,4 +1,10 @@
-Vue.component('history-sidebar',{
+// IMPORTANT NOTE: Mind the capitalization for some function names. Some are fully lower-case; those are the ones
+//                 that end up being referred to in HTML (which is case-insensitive, ergo Vue won't recognize
+//                 the function trying to be called if its declared as camelCase).
+
+// history-sidebar: "Article last read" component, bottom-right corner.
+
+Vue.component('history-sidebar',{       
   template:`
   <ul>
     <li v-if="articles.length > 0" v-for="(article, index) in articles" v-bind:key="key(article.articleId, index)">
@@ -20,7 +26,8 @@ Vue.component('history-sidebar',{
     articles:Array
   },
   methods:{
-    key:function(id, index){
+    key:function(id, index){      
+      // Generates unique key, necessary for Vue to keep its children straight.                
       return `history-sidebar-${id}-${index}`
     },
     toLocalTime:function(date){
@@ -29,7 +36,9 @@ Vue.component('history-sidebar',{
   }
 })
 
-Vue.component('article-table-row', {
+// article-table-row is for the topic-modal component, NOT the regular list of articles.
+
+Vue.component('article-table-row', {              
     template: `
     <tr>
       <td>
@@ -48,7 +57,9 @@ Vue.component('article-table-row', {
     }
   })
   
-Vue.component('topic-modal', {
+// Modal component that gets displayed when a topic is clicked.
+
+Vue.component('topic-modal', {                    
   template: `
   <div class="modal">
     <div class="modal-background">
@@ -88,14 +99,14 @@ Vue.component('topic-modal', {
     topic: Object
   },
   methods:{
-    changeModal: async function(topic){
-      return articleList.openModal(topic)
+    changeModal: async function(topic){               // Changes the topic for the modal, such as when a user clicks
+      return articleList.openTopicModal(topic)             // a new topic within the modal.
     },
     closeModal: function(){
-      return articleList.showModal = false;
+      return articleList.showTopicModal = false;
     },
-    setToggle: async function(event){
-      var jsonObj = {
+    setToggle: async function(event){                 // setToggle will add or remove topic from user's list
+      var jsonObj = {                                 
         "topicName":event.target.id
       }
       event.target.classList.add("is-loading")
@@ -106,7 +117,11 @@ Vue.component('topic-modal', {
   }
 });
 
-Vue.component('topic-checkbox',{
+// Checkbox for individual topic in topic list at top-right. 
+// When clicked, alerts the parent component topic-row
+// which alerts its parent etc. eventually leading to articleList.toggleTopic()
+
+Vue.component('topic-checkbox',{                     
   template: `
   <input  v-if="topic !== null" 
           class="checkbox" 
@@ -124,21 +139,7 @@ Vue.component('topic-checkbox',{
   }
 })
 
-Vue.component('filter-checkbox',{
-  template: `
-  <input v-model="arraymodel"
-                :id="filterid"
-                v-bind:value="filterid"
-                class="checkbox"
-                type="checkbox"
-                v-on:click="$emit('togglefilter', $event, filterid)">
-  </input>
-  `,
-  props:{
-    filterid:Number,
-    arraymodel:Array
-  }
-})
+// Row for topic in the upper-right topic's table. Contains name and the topic-checkbox component.
 
 Vue.component('topic-row', {
   template: `
@@ -168,6 +169,33 @@ Vue.component('topic-row', {
     key: function(item, index){
       return `topic-row-${item}-${index}`
   }
+  }
+})
+
+// Components that compose table of filters: checkbox, row, table.
+// Very similar set-up compared to topic table, except the table itself is
+// also a Vue component (whereas for topic table the table is declared in plain HTML
+// in home.handlebars).
+
+// "arraymodel" here is (periodicalArticles || authorArticles).map(x=>x.id).
+// It's kept seperately from the original arrays (periodicalArticles/authorArticles)
+// so that when values are spliced from arraymodel in Vuex store (in script.js),
+// the checkboxes don't disappear entirely as would happen if we did that to the 
+// original arrays.
+
+Vue.component('filter-checkbox',{
+  template: `
+  <input v-model="arraymodel"
+                :id="filterid"
+                v-bind:value="filterid"
+                class="checkbox"
+                type="checkbox"
+                v-on:click="$emit('togglefilter', $event, filterid)">
+  </input>
+  `,
+  props:{
+    filterid:Number,
+    arraymodel:Array
   }
 })
 
@@ -229,6 +257,8 @@ Vue.component('filter-table', {
     arraymodel:Array
   }
 })
+
+// Used for adding a topic via the "+" icon in article-component as well as article-preview.
 
 Vue.component('add-topic', {
   template: `
@@ -319,6 +349,7 @@ Vue.component('add-topic', {
   }
 })
 
+// The articles that show up in the main list. 
 
 Vue.component('article-component', {
   template: `
@@ -374,7 +405,7 @@ Vue.component('article-component', {
           class="tag is-small is-dark 
           is-uppercase is-size-7 topicButton" 
           :value="topic" 
-          v-on:click="openModal(topic)"
+          v-on:click="openTopicModal(topic)"
           v-bind:key="key('topic', topic, index)">
         {{topic}}
       </a>
@@ -383,7 +414,7 @@ Vue.component('article-component', {
           is-size-7 topicButton" 
           :value="extraTopic" 
           v-bind:key="key('extraTopic', extraTopic, index)"
-          v-on:click="openModal(extraTopic)">
+          v-on:click="openTopicModal(extraTopic)">
           {{extraTopic}}
       </a>
       <add-topic v-if="article.topics != null"
@@ -414,21 +445,26 @@ Vue.component('article-component', {
     isupdatearticle: Boolean
   },
   methods:{
-    openModal: async function(topic){
-      return articleList.openModal(topic)
+    openTopicModal: async function(topic){        
+      // Opens the topic modal when one of the topic tags is clicked.     
+      return articleList.openTopicModal(topic)
     },
-    key: function(string, item, index){
-        return `article-${this.article.articleId}-${string}-${item}-${index}`
+    key: function(string, item, index){   
+      // Unique key generator, used in v-bind:key which is how Vue tracks list elements.        
+      return `article-${this.article.articleId}-${string}-${item}-${index}`
     },
     toLocalDate:function(date){
       return new Date(date).toDateString()
     },
-    changeArticleContent: async function(){
-      var jsonObj={
-        "title":this.article.title
-      }
+    changeArticleContent: async function(){ 
+      // Updates *just* the article being modified, such as when a topic is added,   
+      // or the title/content/URL are changed by user. Reason for this is so  
+      // the entire list doesn't have to reload and cause the user 
+      // to lose their place every time they change something.
+      var jsonObj={                                
+        "title":this.article.title                
+      }                                           
       var response = await postReq('/api/getJustOneArticleByTitle', jsonObj)
-      console.log(response)
       var topicsArr = response[0].topic.split("&&&")
       if(response[0].extraTopicName != null){
         var extraTopicsArr = response[0].extraTopicName.split("&&&")
@@ -448,17 +484,22 @@ Vue.component('article-component', {
         date: response[0].date.substring(0,10),
         url: response[0].url
       }
-      this.$emit('changearticle', this.article)
+      // this.$emit(...) alerts Vuex store and sends modified article up the chain so it can be switched
+      // in the article array.
+      this.$emit('changearticle', this.article)   
     },
+    // startUpdate and cancelUpdate are triggered when the user clicks the 'edit' button for an article.                                           
     startUpdate:function(){
-      this.isupdatearticle = true
-      this.article.oldArticle = {
+      this.isupdatearticle = true   
+      // oldArticle saves the previous article information, in the event the action is canceled.              
+      this.article.oldArticle = {   
         "title":this.article.title,
         "content":this.article.content,
         "url":this.article.url
       }
     },
     cancelUpdate:function(){
+      // Restores article to initial values if user chooses to cancel update.
       this.article.title = this.article.oldArticle.title
       this.article.content = this.article.oldArticle.content
       this.article.url = this.article.oldArticle.url
@@ -466,6 +507,9 @@ Vue.component('article-component', {
       
     },
     updateArticle:async function(){
+      // Triggered after user clicks 'save' when editing article. Because the input boxes are two-way bound using Vue's v-model,
+      // the values for article.title, article.content etc.. are updated as the user types them, which is why they can
+      // be referred to as the original object properties in jsonObj.
       var jsonObj={
         "title":this.article.title,
         "content":this.article.content,
@@ -479,6 +523,12 @@ Vue.component('article-component', {
     }
   }
 })
+
+// Modal that's displayed after clicking result in search box.
+// Note that the topics are generic and aren't colored according to 
+// whether they're in the user list. This is because the search box
+// searches *all* articles, so the results can't be restricted to just
+// the user's topic articles.
 
 Vue.component('article-preview', {
   template:`
@@ -541,14 +591,16 @@ Vue.component('article-preview', {
     key:function(string, item, index){
       return `${string}-${item}-${index}`
     },
-    changeToTopics: function(topic){
+    changeToTopics: function(topic){            
+      // For when user clicks on a topic tag within the article preview.
       articleList.showArticleModal = false
-      return articleList.openModal(topic)
+      return articleList.openTopicModal(topic)
     },
     closeArticleModal: function(){
       return articleList.showArticleModal = false 
     },
     changeArticleContent: async function(){
+      // Used when user adds a new topic to an article within the preview modal.
       var jsonObj={
         "title":this.article.title
       }

@@ -1,7 +1,7 @@
 {{#if isLoggedIn}}
 <div id="article-list">
     <transition name="fade">
-    <topic-modal v-show="showModal" :topic="activeTopic"></topic-modal></transition>
+    <topic-modal v-show="showTopicModal" :topic="activeTopic"></topic-modal></transition>
     <article-preview v-show="showArticleModal" :article="activeArticle" :topiclist="topics"></article-preview>
     <section class="section mainApp">
 

@@ -17,6 +17,13 @@ async function getReq(url=''){
 
 Vue.use(Vuex)
 
+// Vuex is a plugin for Vue that makes changing state more straightforward
+// by employing a "store", which is just a collection of the elements that
+// are bound to be mutated in some way. The mutations are always done
+// via the methods in "mutations" and are SYNCHRONOUS (can't do server calls).
+// The way around this is by creating "actions", which can then commit
+// mutations after the async call is made.  
+
 const store = new Vuex.Store({
   state:{
     periodicalArticles:[],
@@ -53,9 +60,16 @@ const store = new Vuex.Store({
     changeUserArticles(state, array){
       state.userArticles = array
     },
-    changeArticle(state, article){
+    changeArticle(state, article){ 
+      // This is called when an article is changed by a user (topic added, changed title, etc..)
+      
       var thisPage = state.pages[state.currentPage]
       article.topic = ""
+
+      // The following two loops "revert" the topics and extraTopics arrays back to "&&&" separated
+      // strings. Reason for this is because they're getting placed back within the pages array
+      // and will be treated as if they came straight from the server when the page gets changed.
+
       for(i=0;i<article.topics.length;i++){
         article.topic += article.topics[i]
         if(article.topics.length - i > 1){
@@ -77,12 +91,13 @@ const store = new Vuex.Store({
       
       for(i=0;i<thisPage.length;i++){
         if(thisPage[i].articleId == article.articleId){
-          console.log("found it")
           thisPage[i] = article
         }
       }
     },
     changeArticles(state, response){
+      // This changes the displayed article list when the page is changed via
+      // makePages, goNextPage, goPrevPage.
       var newArticles = []
       for(i=0;i<response.length;i++){
         let topicsArr = response[i].topic.split("&&&")
@@ -113,7 +128,9 @@ const store = new Vuex.Store({
     changeUserTopics(state, array){
       state.userTopics = array
     },
-    removeFromPeriodicals(state, x){
+    // togglePeriodicalArrayValue/toggleAuthorArrayValue cuts out or adds a specific periodical/author
+    // from periodicalarray/authorarray based on the filterId given from a checkbox 'click' event.
+    togglePeriodicalArrayValue(state, x){
       var foundInPeriodicals = false
       for(i=0;i<state.periodicalarray.length;i++){
         if(state.periodicalarray[i] == x){
@@ -125,7 +142,7 @@ const store = new Vuex.Store({
         state.periodicalarray.push(x)
       }
     },
-    removeFromAuthors(state, x){
+    toggleAuthorArrayValue(state, x){
       var foundInAuthors = false
       for(i=0;i<state.authorarray.length;i++){
         if(state.authorarray[i] == x){
@@ -179,6 +196,8 @@ const store = new Vuex.Store({
     },
 
     makePages({commit, state}, response){
+      // Chops the list of articles from the server into pages of PAGE_SIZE length.
+      // Uses changeArticles to modify the actual displayed list.
       commit('changeCurrentPage', 0)
       commit('changePages', [])
       for(i=0;i<response.length;i+=PAGE_SIZE){
@@ -208,7 +227,6 @@ const store = new Vuex.Store({
           commit('changeArticles', state.pages[0])
         }
       }
-      console.log(state.pages)
     },
 
     goNextPage({commit, state}){
@@ -267,6 +285,7 @@ function makeNode(elementType, properties){
 }
 
 PAGE_SIZE = 20
+
 var articleList = new Vue({
   el: "#article-list",
   store,
@@ -282,6 +301,8 @@ var articleList = new Vue({
         isUserTopic: Boolean
       },
       activeArticle:{
+        // Article that's currently occupying the 'article-preview' modal
+        // that gets triggered from the searchbox.
         title: "",
         content: "",
         topics: [],
@@ -293,7 +314,7 @@ var articleList = new Vue({
         periodicalId: null,
         date: ""
       },
-      showModal: false,
+      showTopicModal: false,
       showArticleModal:false,
       isperiodical:true,
       articlearray:[],
@@ -301,6 +322,7 @@ var articleList = new Vue({
       isUserTopics:false
     },
     computed:{
+      // Fetches values from the Vuex store so that they can be referenced in the methods here.
       authorarray:function(){
         return store.state.authorarray
       },
@@ -331,6 +353,9 @@ var articleList = new Vue({
     },
     watch:{
       userTopics:function(){
+        // Checks if there's any user topics (and therefore any articles to display).
+        // This value is used to determine whether the "no articles" placeholder (in home.handlebars)
+        // is displayed.
         if(this.userTopics[0] == null || this.userTopics.length == null){
           return this.isUserTopics = false;
         }
@@ -345,15 +370,29 @@ var articleList = new Vue({
         "topicId":topicId
       }
       originalCheckbox = event.target
+
+      // 'loader' is switched out with the checkbox so the user
+      // can't continue to change the value while the server gets 
+      // updated.
+
       var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, 
         {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
       if(event.target.classList.contains("checkbox")){
         loader.classList.add("is-loader")
         event.target.parentElement.replaceChild(loader, event.target)
       }
+
       var waitForResponse = await postReq("/api/toggleTopic", jsonObj)
       store.dispatch('getUserTopics')
+
+      // Passing waitForResponse to getTopicArticles so that the function
+      // doesn't fire before the user's topics are updated.
+
       this.getTopicArticles(waitForResponse).then(()=>{
+
+        // Replace loader element with the original checkbox once
+        // all the changes are made.
+
         if(loader.classList.contains("is-loader")){
           loader.parentElement.replaceChild(originalCheckbox, loader)
         }
@@ -363,26 +402,25 @@ var articleList = new Vue({
         }
       })
     },
-    setUserArticle:async function(event, articleId){
-      let jsonObj = {
-        "articleId":articleId
-      }
-      var response = await postReq('/api/toggleUserArticle', jsonObj).then(()=>{
-        store.dispatch('getUserArticles')
-      })
-
-    },
     toggleFilter:function(event, filterid){     
       var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, 
       {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
       var checkbox = event.target
       event.target.parentElement.replaceChild(loader, event.target)
+
+      // If the periodical table is the "active" table, then remove the given ID from that array.
+      // Otherwise it was picked from the author table, so remove it from there.
+
       if(this.isperiodical){
-        store.commit('removeFromPeriodicals', filterid)
+        store.commit('togglePeriodicalArrayValue', filterid)
       }
       else{
-        store.commit('removeFromAuthors', filterid)
+        store.commit('toggleAuthorArrayValue', filterid)
       }
+
+      // Takes the array models from both filter tables, and then grabs the articles that are
+      // a.) in the user's topic articles, b.) have those authors/periodicals
+
       var jsonObj = {
         "periodicalIds":store.state.periodicalarray,
         "authorIds":store.state.authorarray,
@@ -393,12 +431,31 @@ var articleList = new Vue({
       await store.dispatch('getNewAuthors')  
       await store.dispatch('getNewPeriodicals')
     },
+    setUserArticle:async function(event, articleId){
+      // Sets an article as "read" after user clicks on the external link.
+      let jsonObj = {
+        "articleId":articleId
+      }
+      var response = await postReq('/api/toggleUserArticle', jsonObj).then(()=>{
+        store.dispatch('getUserArticles')
+      })
+
+    },
     getTopicArticles: async function(){
+      // Gets all articles that match the user's chosen topics.
       var response = await getReq('/api/getTopicArticlesWithAllTopics')
       store.dispatch('makePages', response)
       this.getFilterValues(response)
     },
+    getTopicArticlesFiltered: async function(jsonObj, checkbox, loader){
+      // Gets *filtered* articles based on the periodicalarray and authorarray
+      // values passed in by toggleFilter.
+      var response = await postReq('/api/getTopicArticlesFiltered', jsonObj)
+      store.dispatch('makePages', response)
+      loader.parentElement.replaceChild(checkbox, loader)
+    },
     changeArticle:function(article){
+      // Passes changeArticle event to Vuex mutator.
       store.commit('changeArticle', article)
     },
     goNextPage(){
@@ -407,41 +464,37 @@ var articleList = new Vue({
     goPrevPage(){
       store.dispatch('goPrevPage')
     },
-    getTopicArticlesFiltered: async function(jsonObj, checkbox, loader){
-      var response = await postReq('/api/getTopicArticlesFiltered', jsonObj)
-      store.dispatch('makePages', response)
-      loader.parentElement.replaceChild(checkbox, loader)
-    },
-    enableCheckbox:function(response, event){
-      event.target.disabled=false
-    },
-    openModal: async function(topic){
+    openTopicModal: async function(topic){
       var jsonObj = {
         "topic":topic
       }
       var topicObj = {
         "name":topic
       }
+      // getJustOneTopic returns all articles for a topic,
+      // and getRelatedTopics gets all TopicTopics for a topic.
       topicObj.topicArticles = await postReq('/api/getJustOneTopic', jsonObj)
       topicObj.relatedTopics = await postReq('/api/getRelatedTopics', jsonObj)
       topicObj.topicId = topicObj.topicArticles[0].topicId
       store.dispatch('getUserTopics').then(()=>{
         topicObj.isUserTopic = false;
         for(i=0;i<this.userTopics.length;i++){
-          if(this.userTopics[i] == topic){
-            topicObj.isUserTopic = true;
+          if(this.userTopics[i] == topic){        // Affects whether the button at the bottom of the modal
+            topicObj.isUserTopic = true;          // reads "add to my topics" or "remove from my topics".
           }
         }
         articleList.activeTopic = topicObj
-        articleList.showModal = true
+        articleList.showTopicModal = true
       })
       
     },
     openArticlePreview: async function(item){
+      // Opens the article-preview modal and sets the article to be displayed.
+      // getJustOneArticleGeneric is used because *all* articles are being searched,
+      // therefore we don't want a list specific to the user's topics.
       var jsonObj = {}                       
       jsonObj["title"] = item.dataset.val
-      var response = await postReq('/api/getJustOneArticleGeneric', jsonObj)
-      console.log(response)
+      var response = await postReq('/api/getJustOneArticleGeneric', jsonObj)  
       var topicsArr = response[0].topic.split("&&&")
       articleList.activeArticle = { 
         title: response[0].title, 
@@ -457,6 +510,8 @@ var articleList = new Vue({
       }
       articleList.showArticleModal = true
     },
+    // setAuthorsTab and setPeriodicalsTab simply change which tab is highlighted
+    // when switching between the filters in the dropdown.
     setAuthorsTab:function(){
       if(document.getElementById("periodicalsTab").classList.contains("is-active")){
         document.getElementById("periodicalsTab").classList.remove("is-active")
@@ -479,49 +534,30 @@ var articleList = new Vue({
 })
 
 document.addEventListener("DOMContentLoaded", async function(){
+  // First, grab all the topics to populate the topic checklist.
   var response = await getReq('/api/getTopics')
   for(i=0;i<response.length;i++){
     articleList.topics.push({name:response[i].name, topicId:response[i].topicId})
   }
+  // Then get the user topics in order to check those boxes.
   store.dispatch('getUserTopics')
+  // Then get the user's article history for the history-sidebar.
   store.dispatch('getUserArticles')
+  // Then get the articles based on the user's topics.
   articleList.getTopicArticles()
+  // Then get the filter values ('response' isn't used in getFilterValues, only there so program knows to wait until
+  // response is returned).
   articleList.getFilterValues(response)
 })
 
 
 
-function makeLoadingBar(initial, message){
-    let articleList = clearAllAndReturn("#articleList")
-    let loadStatusText = makeNode("p", [{"className":"subtitle"}, {"innerText":message}, {"id":"loadStatusText"}])
-    let dummyText = makeDummyText()
-    let loadingBarDiv = makeNode("div", [{"style":"padding: 60px;"}, {"className":"tile is-parent is-vertical box"}, {"id":"loadingBarDiv"}])
-    let loadingBar = makeNode("progress", [{"id":"loadingBar"}, {"className":"progress title"}, {"value":initial}, {"textContent":initial}, {"max":"100"}])
-    appendThese(loadingBarDiv, [loadingBar, loadStatusText, dummyText]);
-    articleList.appendChild(loadingBarDiv)
-    isLoadingBar = true;
-}
-
-function displayNoArticles() {
-  let articleList = clearAllAndReturn("#articleList");
-  isLoadingBar = false
-
-  let articleDiv = makeNode("div", [{"className":"tile is-parent is-vertical box"}, {"style":"padding: 60px; text-align: center;"}])
-  let articleDivPara = makeNode("p", [{"className":"title is-5"}, {"innerText":"We don't have any articles for you yet!"}])  
-  let articleDivParaSub = makeNode("p", [{"className":"subtitle is-6"}, {"innerText":"Pick some topics to get started"}])
-
-  let pencilIconCol = makeNode("p", [{"className":"columns is-centered"}])
-  let pencilIcon = makeNode("icon", [{"id":"noteIcon"}, {"className":"icon column is-centered is-large"}, {"innerText":"📝"}])
-
-  let dummyText = makeDummyText()     //Div will shrink unless it's filled, so filling with invisible text JIC
-
-  pencilIconCol.appendChild(pencilIcon);
-  appendThese(articleDivPara, [articleDivParaSub, pencilIconCol])
-  appendThese(articleDiv, [articleDivPara, dummyText])
-  articleList.appendChild(articleDiv);
-}
+// Autocomplete for article search. Uses auto-complete.min.js which was obtained from 
+// here: https://goodies.pixabay.com/javascript/auto-complete/demo.html 
+// All credit to Pixabay.com for the resulting functionality.
 
 var xhr;
+
 new autoComplete({
     selector: '#searchBox',
     source: function(term, response){
@@ -541,19 +577,6 @@ new autoComplete({
     minChars: 1
 
 });
-
-//The island of unhappy code
-
-//let date = new Date(response[i].date)
-//let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)    // Date is not finite. I think it's a database issue.
-//let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
-//let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date)
-//articleDate.innerText = `${month} ${day} ${year} `;
-
-/* let year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date) // Same thing here.
-let month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date)
-let day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date) */
-//let date = response[i].lastViewed.substr(0, 10)
 
 
 
