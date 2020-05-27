@@ -84,7 +84,7 @@
                                         <i class="fas fa-search"></i>
                                     </span>
                                     <transition-group name="list">
-                                        <div v-show="!isUserTopics">
+                                        <div v-show="!isUserTopics && isReady">
                                             <div class="tile is-parent is-vertical box"
                                                 style="padding: 60px; text-align: center;">
                                                 <p class="title">
@@ -104,13 +104,34 @@
                                                 </p>
                                             </div>
                                         </div>
+                                        <div v-show="!isReady && loadText != null">
+                                            <div class="tile is-parent is-vertical box"
+                                                style="padding: 60px; text-align: center;">
+                                                <p class="title">
+                                                    \{{loadText}}
+                                                </p>
+                                                <p class="subtitle">
+                                                    <progress class="progress" :value="loadAmount" max="100">\{{loadAmount}}%</progress>
+                                                </p>
+
+                                                <p class="columns is-centered">
+                                                    <span id="noteIcon" class="icon column is-centered is-large">
+                                                        <i class="fas fa-stopwatch"></i>
+                                                    </span>
+
+                                                </p>
+                                                <p>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </transition-group>
                                 </p>
                                 <article class="is-child tile box" id="articleContainer">
-                                    <ul>
+                                    <ul v-show="isReady && isUserTopics">
                                         <transition-group name="list">
                                             <article-component v-for="article in articles" :article="article"
                                                 :topiclist="topics" v-bind:key="article.articleId" class="list-item"
+                                                :isaddtopic="false"
                                                 v-on:setuserarticle="setUserArticle" v-on:changearticle="changeArticle"
                                                 :isupdatearticle="false" />
                                         </transition-group>

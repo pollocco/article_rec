@@ -14,7 +14,13 @@ body {
 #articleList{
     align-items: stretch;
     min-width: 100%;
+    position:relative;
+}
 
+.articeList{
+    align-items: stretch;
+    min-width: 100%;
+    position:relative; 
 }
 
 
@@ -32,9 +38,6 @@ body {
     min-width: 100%;
 }
 
-ul{
-    transition: all 1s ease;
-}
 
 #topicsTile{
     display: table;
@@ -140,13 +143,42 @@ table{
     animation-duration: 0.3s
 }
 
-#addTopicDiv{
+.addTopicDiv:after, .addTopicDiv:before {
+	bottom: 100%;
+	border: solid transparent;
+	content: "";
+	height: 0;
+	width: 0;
+	position: absolute;
+}
+
+.addTopicDiv:after {
+	border-color: rgba(0, 0, 0, 0);
+	border-bottom-color: rgb(255, 255, 255);
+    border-width: 16px;
+    left: 15%;
+    margin-left: -6px;
+}
+.addTopicDiv:before {
+	border-color: rgba(161, 103, 45, 0);
+	border-bottom-color: black;
+    border-width: 21px;
+    left: 15%;
+    margin-left: -10px;
+}
+.addTopicDiv{
+    position: relative;
+    border: 4px solid black;
+    margin-left: 2rem;
+    margin-bottom: 1rem;
+    box-shadow: 10px 5px 5px black;
     width: 20rem;
-    background-color: rgb(233, 233, 233);
+    background-color: rgba(255, 255, 255, 0.87);
     padding: 1rem;
-    border-radius: 1rem;
+    border-radius: 3px;
     margin-top: 10px;
 }
+
 
 #addTopicCloseButton{
     float: right;
@@ -170,8 +202,8 @@ table{
 
 
 #articleContainer{
-    max-height: 180vh;
-    min-height: 90vh;
+    max-height: 1300px;
+    min-height: 1300px;
     overflow-y:scroll;
 }
 
@@ -288,14 +320,19 @@ table{
     margin-left: 8px;
     vertical-align: bottom;
     text-decoration: none !important;
+    font-family: 'Source Serif Pro', 'Roboto Slab', Georgia, 'Times New Roman', Times, serif;
 }
 
-a.topicButton.is-dark:hover{
+.tags:not(:last-child){
+    margin-bottom: 0.3rem !important;
+}
+
+button.topicButton.is-dark:hover{
     cursor:pointer;
     filter: brightness(110%)
 }
 
-a.topicButton.is-light:hover{
+button.topicButton.is-light:hover{
     cursor:pointer;
     filter: brightness(95%)
 }

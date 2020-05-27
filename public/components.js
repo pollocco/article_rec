@@ -258,18 +258,15 @@ Vue.component('filter-table', {
   }
 })
 
+
+
 // Used for adding a topic via the "+" icon in article-component as well as article-preview.
 
 Vue.component('add-topic', {
   template: `
   <span>
-    <a  class="tag is-small is-light is-uppercase is-size-7 topicButton" 
-        v-show="isaddtopic === false" 
-        v-on:click="openAddTopic">
-        <i class="fas fa-plus"></i>
-    </a>
-    <div v-show="isaddtopic === true" id="addTopicDiv">
-    <button class="delete" id="addTopicCloseButton" aria-label="close" v-on:click="isaddtopic = false">
+    <div :id="key('add-topic-div', articleId)" class="addTopicDiv">
+    <button class="delete" id="addTopicCloseButton" aria-label="close" v-on:click="closeaddtopic">
     </button>
       <label class="label">
         Why don't you tell me the topic?&nbsp;
@@ -285,9 +282,9 @@ Vue.component('add-topic', {
       </div>
       <div class="field" v-show="selectoradd === 'existing'">
         <div class="control">
-          <div class="select">
+          <div class="select is-fullwidth">
             <select v-model="newtopic">
-              <option>Select topic</option>
+              <option :value="null" disabled>Select topic</option>
               <option v-for="topicItem in topiclist" >{{topicItem.name}}</option>
             </select>
           </div>
@@ -295,35 +292,37 @@ Vue.component('add-topic', {
       </div>
       <div class="control">
         <label class="radio">
-          <input type="radio" name="selectoradd" v-model="selectoradd" value="add"/>
+          <input type="radio" id="add" v-model="selectoradd" value="add"></input>
           Add your own
         </label>
         <label class="radio">
-          <input type="radio" name="selectoradd" v-model="selectoradd" value="existing"/>
+          <input type="radio" id="existing" v-model="selectoradd" value="existing"></input>
+          
           Use existing
         </label>
       </div>
       <button class="button is-dark" v-on:click="sendNewTopic" :value="newtopic">Add</button>
-      <button class="button" v-on:click="isaddtopic = false">Cancel</button>
+      <button class="button" v-on:click="closeaddtopic">Cancel</button>
     </div>
   </span>
   `,
   props:{
     topiclist: Array,
-    isaddtopic: false,
-    selectoradd: "",
     articleId: Number,
-    articleTopic: String
+    articleTopic: String,
+    selectoradd: ""
   },
   data:function(){
     return{
-      newtopic: this.newtopic
+      newtopic: null
     } 
   },
   methods:{
-    openAddTopic: function(){
-      this.selectoradd = "add"
-      return this.isaddtopic = true
+    key:function(string, id){
+      return `${string}-${id}`
+    },
+    closeaddtopic:function(){
+      this.$emit('closeaddtopic')
     },
     sendNewTopic: async function(event){
       event.target.classList.add("is-loading")
@@ -349,13 +348,33 @@ Vue.component('add-topic', {
   }
 })
 
+Vue.component('add-topic-button',{
+  template:`
+  <button :id="key('add-topic-button', articleId)" class="addTopicButton tag is-small is-light is-uppercase is-size-7 topicButton" 
+    v-on:click="openaddtopic">
+    <i class="fas fa-plus"></i>
+  </button>
+  `,
+  props:{
+    articleId:Number
+  },
+  methods:{
+    key:function(string, id){
+      return `${string}-${id}`
+    },
+    openaddtopic:function(){
+      this.$emit('openaddtopic')
+    }
+  }
+})
+
 // The articles that show up in the main list. 
 
 Vue.component('article-component', {
   template: `
   <div>
     
-    <div class="tile is-parent is-vertical box">
+    <div class="tile is-parent is-vertical box" :id="divKey('article-parent-div', article.articleId)">
       <li>
       <div v-show="isupdatearticle === false">
         <p class="article-title is-size-5 has-text-weight-bold has-text-dark">
@@ -401,29 +420,47 @@ Vue.component('article-component', {
       <span class="author is-size-6 has-text-dark">
       {{article.firstName}} {{article.lastName}}&nbsp;|&nbsp;<span>{{article.periodicalName}}</span>&nbsp;|&nbsp;🗓️&nbsp;{{toLocalDate(article.date)}}
       </span>
-      <a  v-for="(topic,index) in article.topics" 
-          class="tag is-small is-dark 
-          is-uppercase is-size-7 topicButton" 
-          :value="topic" 
-          v-on:click="openTopicModal(topic)"
-          v-bind:key="key('topic', topic, index)">
-        {{topic}}
-      </a>
-      <a v-if="article.extraTopics != null" v-for="(extraTopic,index) in article.extraTopics"  
-          class="tag is-small is-light is-uppercase 
-          is-size-7 topicButton" 
-          :value="extraTopic" 
-          v-bind:key="key('extraTopic', extraTopic, index)"
-          v-on:click="openTopicModal(extraTopic)">
-          {{extraTopic}}
-      </a>
-      <add-topic v-if="article.topics != null"
-                  :topiclist="topiclist" 
-                  :articleId="article.articleId" 
-                  :articleTopic="article.topics[0]" 
-                  :isaddtopic="false" 
-                  v-on:changeArticle="changeArticleContent"/>
+        <div class="field is-grouped is-grouped-multiline">
+          <span class="tags has-addons" v-for="(topic,index) in article.topics" >
+            <button  
+                class="tag is-small is-dark is-uppercase is-size-7 topicButton" 
+                :value="topic" 
+                v-on:click="openTopicModal(topic)"
+                v-bind:key="key('topic', topic, index)">
+              {{topic}}
+            </button>
+            <button class="tag is-delete topicButton" v-if="article.topics.length > 1" v-on:click="deleteTopic(topic)"></button>
+            </span>
+          <span class="tags has-addons" v-for="(extraTopic,index) in article.extraTopics"  v-if="article.extraTopics != null"> 
+            <button class="tag is-small is-light is-uppercase 
+                is-size-7 topicButton" 
+                :value="extraTopic" 
+                v-bind:key="key('extraTopic', extraTopic, index)"
+                v-on:click="openTopicModal(extraTopic)">
+                {{extraTopic}}
+            </button>
+            <button class="tag is-delete topicButton" v-on:click="deleteTopic(extraTopic)"></button>
+          </span>
+          <span>
+            <add-topic-button v-if="article.topics != null"
+            :articleId="article.articleId"
+            v-bind:key="key('add-topic-button', article.articleId, 0)"
+            v-show="!isaddtopic"
+            v-on:openaddtopic="setAddTopic(true)"
+            />
+            
+          </span>
+        </div>
+        <add-topic v-show="isaddtopic" v-on:changeArticle="changeArticleContent"
+          v-on:closeaddtopic="setAddTopic(false)"
+          :selectoradd='"add"'
+          v-bind:key="key('add-topic-parent', article.articleId, 1)"
+          :topiclist="topiclist" 
+          :articleId="article.articleId" 
+          :articleTopic="article.topics[0]" />
+        
       </li>
+      
     </div>
   </div>
   `,
@@ -442,12 +479,40 @@ Vue.component('article-component', {
       date:String
     },
     topiclist: Array,
-    isupdatearticle: Boolean
+    isupdatearticle: Boolean,
+    isaddtopic: Boolean
   },
   methods:{
+    divKey:function(string, id){
+      return `${string}-${id}`
+    },
+    deleteTopic:async function(topic){
+      var jsonObj = {
+        "articleId":this.article.articleId,
+        "topic":topic
+      }
+      var response = await postReq("/api/deleteTopic", jsonObj)
+      return this.changeArticleContent(response)
+    },
     openTopicModal: async function(topic){        
       // Opens the topic modal when one of the topic tags is clicked.     
       return articleList.openTopicModal(topic)
+    },
+    setAddTopic:function(bool){
+      if(bool == true){
+        setTimeout(()=>{addEventListener("click",(e)=>{
+          if(document.getElementById(`add-topic-div-${this.article.articleId}`)  == null ){
+            return
+          }
+          else if(!(document.getElementById(`add-topic-div-${this.article.articleId}`).contains(e.target))
+            && !(document.getElementById(`article-parent-div-${this.article.articleId}`).contains(e.target))){
+            return this.isaddtopic = false
+          }
+          
+        })}, 100)
+      }
+      
+      return this.isaddtopic = bool
     },
     key: function(string, item, index){   
       // Unique key generator, used in v-bind:key which is how Vue tracks list elements.        
@@ -466,11 +531,12 @@ Vue.component('article-component', {
       }                                           
       var response = await postReq('/api/getJustOneArticleByTitle', jsonObj)
       var topicsArr = response[0].topic.split("&&&")
+      var extraTopicsArr = null
       if(response[0].extraTopicName != null){
-        var extraTopicsArr = response[0].extraTopicName.split("&&&")
+        extraTopicsArr = response[0].extraTopicName.split("&&&")
       }
       await this.$store.dispatch('getUserTopics')
-      this.article = { 
+      var newArticle = { 
         title: response[0].title, 
         content: response[0].content, 
         topics: topicsArr,
@@ -484,6 +550,13 @@ Vue.component('article-component', {
         date: response[0].date.substring(0,10),
         url: response[0].url
       }
+
+      // Here, Object.assign(old, new) changes the object as it's stored in the component. Without it, a change in rendering 
+      // resets the values of the component (example: deleting a topic and then opening a topic modal would cause the
+      // deleted tag to be reinstated.) 
+
+      Object.assign(this.article, newArticle)
+
       // this.$emit(...) alerts Vuex store and sends modified article up the chain so it can be switched
       // in the article array.
       this.$emit('changearticle', this.article)   

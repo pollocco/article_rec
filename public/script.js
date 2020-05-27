@@ -48,9 +48,19 @@ const store = new Vuex.Store({
     userArticles:[{}],
     userTopics:[],
     isNextPage:false,
-    isPrevPage:false
+    isPrevPage:false,
+    isReady: false,
+    loadText: "Booting up the mainframe...",
+    loadAmount: "0"
   },
   mutations:{
+    changeLoadValues(state, {amount, text}){
+      state.loadAmount = `${amount}`
+      state.loadText = text
+    },
+    changeIsReady(state, bool){
+      state.isReady = bool
+    },
     changePeriodicals(state, array){
       state.periodicalArticles = array
       state.periodicalarray = array.map(x=>x.periodicalId)
@@ -90,6 +100,8 @@ const store = new Vuex.Store({
           
         }
       }
+
+      else{article.extraTopics = null}
       
       for(i=0;i<thisPage.length;i++){
         if(thisPage[i].articleId == article.articleId){
@@ -349,6 +361,15 @@ var articleList = new Vue({
       },
       isPrevPageDisabled:function(){
         return !store.state.isPrevPage
+      },
+      loadText:function(){
+        return store.state.loadText
+      },
+      loadAmount:function(){
+        return store.state.loadAmount
+      },
+      isReady:function(){
+        return store.state.isReady
       }
     },
     watch:{
@@ -535,19 +556,28 @@ var articleList = new Vue({
 
 document.addEventListener("DOMContentLoaded", async function(){
   // First, grab all the topics to populate the topic checklist.
-  var response = await getReq('/api/getTopics')
-  for(i=0;i<response.length;i++){
-    articleList.topics.push({name:response[i].name, topicId:response[i].topicId})
-  }
+  await getReq('/api/getTopics').then((response)=>{
+    store.commit('changeLoadValues', {amount:30, text:'Gathering topics...'})
+    for(i=0;i<response.length;i++){
+      articleList.topics.push({name:response[i].name, topicId:response[i].topicId})
+    }
+  })
+  
   // Then get the user topics in order to check those boxes.
-  store.dispatch('getUserTopics')
+  
+  await store.dispatch('getUserTopics').then(()=>{store.commit('changeLoadValues', {amount:50, text:'Fetching user history...'})})
+  
   // Then get the user's article history for the history-sidebar.
-  store.dispatch('getUserArticles')
+  
+  await store.dispatch('getUserArticles').then(()=>{store.commit('changeLoadValues', {amount:70, text:'Indexing articles...'})})
+  
   // Then get the articles based on the user's topics.
-  articleList.getTopicArticles()
+  
+  await articleList.getTopicArticles().then(()=>{store.commit('changeLoadValues', {amount:95, text:'Finishing up...'})})
   // Then get the filter values ('response' isn't used in getFilterValues, only there so program knows to wait until
   // response is returned).
-  articleList.getFilterValues(response)
+  
+  await articleList.getFilterValues().then(()=>{store.commit('changeIsReady', true)})
 })
 
 

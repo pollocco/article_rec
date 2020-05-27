@@ -345,6 +345,40 @@ router.get('/getTopics', function(req, res, next){
     })
 })
 
+router.post('/deleteTopic', function(req, res, next){
+    articleId = req.body.articleId
+    topic = req.body.topic
+    userId = req.session.userId
+    mysql.pool.query('DELETE FROM ArticleTopics ' +
+    'WHERE ArticleTopics.articleId = ? AND ArticleTopics.topicId = (SELECT topicId FROM Topics WHERE name=?)',[articleId, topic], function(error, result){
+        if(error){
+            console.log(error)
+        } else{
+            mysql.pool.query('SELECT Articles.*, GROUP_CONCAT(DISTINCT(Topics.name) SEPARATOR "&&&") as topic, GROUP_CONCAT(DISTINCT(Topics.topicId) SEPARATOR "&&&") as topicId, ' +
+            'GROUP_CONCAT(DISTINCT(MoreArticleTopics.topicId) SEPARATOR "&&&") as extraTopicId, GROUP_CONCAT(DISTINCT(MoreTopics.name) SEPARATOR "&&&") as extraTopicName, Authors.*, ' +
+            'Periodicals.name as periodicalName, PeriodicalArticles.periodicalId as periodicalId, Periodicals.url as periodicalUrl FROM Articles ' +
+            'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
+            'JOIN UserTopics ON ArticleTopics.topicId = UserTopics.topicId AND UserTopics.userId=? ' +
+            'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
+            'JOIN AuthorArticles ON Articles.articleId = AuthorArticles.articleId ' +
+            'JOIN Authors ON AuthorArticles.authorId = Authors.authorId ' +
+            'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
+            'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
+            'LEFT JOIN ArticleTopics as MoreArticleTopics ON Articles.articleId=MoreArticleTopics.articleId AND MoreArticleTopics.topicId NOT IN (SELECT topicId FROM UserTopics WHERE userId=?) '+
+            'LEFT JOIN Topics as MoreTopics ON MoreArticleTopics.topicId=MoreTopics.topicId ' +
+            'WHERE Articles.articleId=? ' +
+            'GROUP BY Articles.articleId, Periodicals.periodicalId, Periodicals.name, Periodicals.url, Authors.authorId ORDER BY Articles.date DESC, COUNT(Topics.name) DESC', [userId, userId, articleId], function(error, result){
+                if(error){
+                    console.log(error)
+                }
+                else{
+                    res.send(result)
+                }
+            })
+        }
+    })
+})
+
 router.post('/getTopicByName', function(req,res,next){
     name = req.body.topicName
     mysql.pool.query('SELECT topicId FROM Topics WHERE name=?', [name], function(error, result){
