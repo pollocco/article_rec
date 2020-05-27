@@ -176,7 +176,7 @@ table{
     background-color: rgba(255, 255, 255, 0.87);
     padding: 1rem;
     border-radius: 3px;
-    margin-top: 10px;
+    margin-top: 2rem;
 }
 
 
@@ -316,7 +316,7 @@ table{
 }
 
 .topicButton{
-    margin-top: 20px;
+    margin-top: 0px;
     margin-left: 8px;
     vertical-align: bottom;
     text-decoration: none !important;

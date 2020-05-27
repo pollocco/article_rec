@@ -269,11 +269,8 @@ Vue.component('add-topic', {
     <button class="delete" id="addTopicCloseButton" aria-label="close" v-on:click="closeaddtopic">
     </button>
       <label class="label">
-        Why don't you tell me the topic?&nbsp;
+        What's a good topic for this? &nbsp;
       </label>
-      <p class="help">
-        Since you're so smart all of a sudden...
-      </p>
       <div class="field" v-show="selectoradd === 'add'">
         <div class="control">
           <input class="input" type="text" v-model="newtopic" placeholder="Topic name">
@@ -387,8 +384,13 @@ Vue.component('article-component', {
           <br/>
         </p>
         <p class="article-content is-size-6 has-text-grey-dark">
-          {{article.content}}
-          
+          {{article.content}} &nbsp;
+          <a :href="article.url" target="_blank" v-show="isupdatearticle === false" v-on:click="$emit('setuserarticle', $event, article.articleId)">
+          Read 
+          <span class="icon">
+            <i class="fas fa-external-link-alt"></i>
+          </span>
+        </a>
         </p>
       </div>
       <div v-show="isupdatearticle === true">
@@ -408,18 +410,11 @@ Vue.component('article-component', {
         <button class="button" v-on:click="cancelUpdate" style="margin-top: 1rem; margin-left: 0.5rem;">Cancel</button>
         
       </div>
-      <button class="button is-small" v-show="isupdatearticle === false">
-        <a :href="article.url" target="_blank" v-on:click="$emit('setuserarticle', $event, article.articleId)">
-          Read &nbsp;&nbsp;
-          <span class="icon">
-            <i class="fas fa-external-link-alt"></i>
-          </span>
-        </a>
-      </button>
-      <br/>
       <span class="author is-size-6 has-text-dark">
       {{article.firstName}} {{article.lastName}}&nbsp;|&nbsp;<span>{{article.periodicalName}}</span>&nbsp;|&nbsp;🗓️&nbsp;{{toLocalDate(article.date)}}
       </span>
+      <br/>
+      <br/>
         <div class="field is-grouped is-grouped-multiline">
           <span class="tags has-addons" v-for="(topic,index) in article.topics" >
             <button  
@@ -605,7 +600,7 @@ Vue.component('article-component', {
 
 Vue.component('article-preview', {
   template:`
-  <div class="modal">
+  <div class="modal" id="key('article-preview-modal', article.articleId, 0)">
     <div class="modal-background">
       <div class="modal-card">
         <div class="modal-card-head">
@@ -627,11 +622,19 @@ Vue.component('article-preview', {
                 v-bind:key="key('article-preview-topic', topic, index)">
               {{topic}}
               </a>
-              <add-topic :topiclist="topiclist" 
-                          :articleId="article.articleId" 
-                          :articleTopic="article.topics[0]" 
-                          :isaddtopic="false" 
-                          v-on:changeArticle="changeArticleContent"/>
+              <add-topic-button v-if="article.topics != null"
+                :articleId="article.articleId"
+                v-bind:key="key('add-topic-preview-button', article.articleId, 0)"
+                v-show="!isaddtopic"
+                v-on:openaddtopic="setAddTopic(true)"
+              />
+              <add-topic v-show="isaddtopic" v-on:changeArticle="changeArticleContent"
+                v-on:closeaddtopic="setAddTopic(false)"
+                :selectoradd='"add"'
+                v-bind:key="key('add-topic-preview-parent', article.articleId, 1)"
+                :topiclist="topiclist" 
+                :articleId="article.articleId" 
+                :articleTopic="article.topics[0]" />
             </span>
             <p class="articleContent" style="padding: 20px;">{{article.content}} <a style="padding-right: 20px;" target="_blank" :href="article.url">
             Read
@@ -658,7 +661,7 @@ Vue.component('article-preview', {
   props:{
     article:Object,
     topiclist:Array,
-
+    isaddtopic:Boolean
   },
   methods:{
     key:function(string, item, index){
@@ -671,6 +674,21 @@ Vue.component('article-preview', {
     },
     closeArticleModal: function(){
       return articleList.showArticleModal = false 
+    },
+    setAddTopic:function(bool){
+      if(bool == true){
+        setTimeout(()=>{addEventListener("click",(e)=>{
+          if(document.getElementById(`article-preview-modal-${this.article.articleId}-0`)  == null ){
+            return
+          }
+          else if(!(document.getElementById(`add-topic-div-${this.article.articleId}`).contains(e.target))
+            && !(document.getElementById(`article-preview-modal-${this.article.articleId}-0`).contains(e.target))){
+            return this.isaddtopic = false
+          }
+          
+        })}, 100)
+      }
+      return this.isaddtopic = bool
     },
     changeArticleContent: async function(){
       // Used when user adds a new topic to an article within the preview modal.

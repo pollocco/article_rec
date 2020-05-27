@@ -3,7 +3,7 @@
     <transition name="fade">
         <topic-modal v-show="showTopicModal" :topic="activeTopic"></topic-modal>
     </transition>
-    <article-preview v-show="showArticleModal" :article="activeArticle" :topiclist="topics"></article-preview>
+    <article-preview v-show="showArticleModal" :article="activeArticle" :isaddtopic="false" :topiclist="topics"></article-preview>
     <section class="section mainApp">
 
         <div class="columns">
@@ -12,7 +12,7 @@
                     <div class="tile is-vertical is-12">
                         <div class="tile is-parent">
                             <div>
-                                <div class="title">My Articles
+                                <div class="title">My Reading List
                                     <button class="button is-primary" id="addNewArticleButton"><a href="/form"
                                             style="color:white !important">Add Article</a></button>
                                     <div class="dropdown" id="filterDrop">
@@ -211,7 +211,7 @@
         dropdown.classList.toggle('is-active');
     }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
 <script src="https://unpkg.com/vuex@3.4.0/dist/vuex.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"
     integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>

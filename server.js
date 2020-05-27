@@ -891,7 +891,7 @@ router.post('/getJustOneArticleGeneric', function(req, res, next){
     'JOIN PeriodicalArticles ON Articles.articleId = PeriodicalArticles.articleId ' +
     'JOIN Periodicals ON PeriodicalArticles.periodicalId = Periodicals.periodicalId ' +
     'WHERE Articles.title=? ' +
-    'GROUP BY Articles.articleId, Periodicals.periodicalId, Periodicals.name, Periodicals.url, Authors.authorId ', [title], function(error, result){
+    'GROUP BY Articles.title, Articles.articleId, Periodicals.periodicalId, Periodicals.name, Periodicals.url, Authors.authorId ', [title], function(error, result){
         if(error){
             console.log(error)
         }

@@ -1,7 +1,7 @@
 <h1 class="is-size-3 has-text-dark has-text-weight-bold">Article Recommendation App</h1>
 <h2 class="is-size-5">Group: The Non-Relational Data Mages</h2>
     <h3 class="is-size-5" style="margin-bottom:30px;">Members: Connor Pollock, Matthew Spencer</h3>
-
+    
     <h3 class="is-size-3">Pages</h3>
         <a class="subtitle" style="color: #3273dc;" href="/" target="_blank">https://datamages.drab.tech/</a>
         <br/>
@@ -10,7 +10,19 @@
         <u>Table features:</u>
         <ul class="index-list">
             <li>
-                SELECT/INSERT for `ArticleTopics` and `Topics` using <span class="icon"><icon class="fas fa-plus"></icon></span> icon. 
+                UPDATE `Articles` using &nbsp;<icon class="fas fa-edit"></icon>&nbsp; icon. 
+            </li>
+            <li>
+                DELETE from `ArticleTopics` using the <button class="tag is-delete"></button> next to the topic tags on articles. 
+                <ul>
+                    <li>
+                        The last UserTopic (<button class="tag is-dark">Black tags</button>) for any given Article can't be deleted.
+                        This is intentional as it prevents the article from becoming "lost" by having no topics.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                SELECT/INSERT for `ArticleTopics` and `Topics` using <button class="icon tag"><icon class="fas fa-plus"></icon></button> button. 
             </li>
             <li>
                 SELECT/INSERT for `TopicTopics` (i.e. related topics), linking the original article topic and the newly added topic.
@@ -29,10 +41,7 @@
                 </ul>
             </li>
             <li>
-                Filter by periodical and author (uses SELECT * FROM ... WHERE `Periodicals`.periodicalId IN ... AND `Authors`.authorId IN ...)
-            </li>
-            <li>
-                UPDATE `Articles` using &nbsp;<icon class="fas fa-edit"></icon>&nbsp; icon.
+                Filter by periodical and author (SELECT * FROM ... WHERE `Periodicals`.periodicalId IN ... AND `Authors`.authorId IN ...)
             </li>
         </ul>
         <br/>
@@ -43,10 +52,10 @@
         <u>Table features:</u>
         <ul class="index-list">
             <li>
-                Select from/insert into/delete from `UserTopics` using checklist.
+                SELECT/INSERT/DELETE from `UserTopics` using "My Topics" checklist.
             </li>
             <li>
-                Select from/insert into `UserArticles` for previously viewed articles. Updates on duplicate key to give most recent view.
+                SELECT/INSERT for `UserArticles` (collection of previously viewed articles). Updates on duplicate key to give most recent view.
                 <ul class="nested-list">
                     <li>`UserArticles` insert is indirect, occurs when user clicks on an article.</li>
                 </ul>
@@ -60,10 +69,10 @@
         <u>Table features:</u>
         <ul class="index-list">
             <li>
-                Insert into `Articles`, `Authors`, and `Periodicals`.
+                Single-table INSERTs for `Articles`, `Authors`, and `Periodicals`.
             </li>
             <li>
-                Perform multiple-table insert for "full article" (adds to `Articles`, `Periodicals`, `Authors`, and `Topics` tables)
+                Multiple-table INSERT for "full article" (covers to `Articles`, `Periodicals`, `Authors`, and `Topics` tables)
             </li>
         </ul>
 
