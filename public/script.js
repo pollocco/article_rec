@@ -485,7 +485,10 @@ var articleList = new Vue({
     goPrevPage(){
       store.dispatch('goPrevPage')
     },
-    openTopicModal: async function(topic){
+    openTopicModal: async function(e, topic){
+      if(!e.target.classList.contains("is-loading")){
+        e.target.classList.add("is-loading")
+      }  
       var jsonObj = {
         "topic":topic
       }
@@ -498,6 +501,9 @@ var articleList = new Vue({
       topicObj.relatedTopics = await postReq('/api/getRelatedTopics', jsonObj)
       topicObj.topicId = topicObj.topicArticles[0].topicId
       store.dispatch('getUserTopics').then(()=>{
+        if(e.target.classList.contains("is-loading")){
+          e.target.classList.remove("is-loading")
+        }
         topicObj.isUserTopic = false;
         for(i=0;i<this.userTopics.length;i++){
           if(this.userTopics[i] == topic){        // Affects whether the button at the bottom of the modal

@@ -76,9 +76,9 @@ Vue.component('topic-modal', {
                 Related Topics
               </p>
             <div class="tags" style="padding: 1rem; padding-top: 0;">
-              <a v-for="relatedTopic in topic.relatedTopics" class="tag is-info is-uppercase" v-on:click="changeModal(relatedTopic.topic)" :value="relatedTopic.topic">
+              <button v-for="relatedTopic in topic.relatedTopics" class="button tag is-info is-uppercase topicButton" v-on:click="changeModal($event, relatedTopic.topic)" :value="relatedTopic.topic">
                 {{relatedTopic.topic}}
-              </a>
+              </button>
             </div>
           </div>
           <p class="subtitle" style="padding: 1rem; margin-bottom: 0.5rem !important;">Articles for {{topic.name}}</p>
@@ -99,8 +99,8 @@ Vue.component('topic-modal', {
     topic: Object
   },
   methods:{
-    changeModal: async function(topic){               // Changes the topic for the modal, such as when a user clicks
-      return articleList.openTopicModal(topic)             // a new topic within the modal.
+    changeModal: async function(e, topic){               // Changes the topic for the modal, such as when a user clicks
+      return articleList.openTopicModal(e, topic)             // a new topic within the modal.
     },
     closeModal: function(){
       return articleList.showTopicModal = false;
@@ -347,9 +347,9 @@ Vue.component('add-topic', {
 
 Vue.component('add-topic-button',{
   template:`
-  <button :id="key('add-topic-button', articleId)" class="addTopicButton tag is-small is-light is-uppercase is-size-7 topicButton" 
+  <button :id="key('add-topic-button', articleId)" class="button is-light tag topicButton addTopicButton" 
     v-on:click="openaddtopic">
-    <i class="fas fa-plus"></i>
+    <span style="font-size:20px;">+</span>
   </button>
   `,
   props:{
@@ -383,6 +383,14 @@ Vue.component('article-component', {
           </a>
           <br/>
         </p>
+        <add-topic v-show="isaddtopic" v-on:changeArticle="changeArticleContent"
+          v-on:closeaddtopic="setAddTopic(false)"
+          :selectoradd='"add"'
+          v-bind:key="key('add-topic-parent', article.articleId, 1)"
+          :id="key('add-topic-parent', article.articleId, 1)"
+          :topiclist="topiclist" 
+          :articleId="article.articleId" 
+          :articleTopic="article.topics[0]" />
         <p class="article-content is-size-6 has-text-grey-dark">
           {{article.content}} &nbsp;
           <a :href="article.url" target="_blank" v-show="isupdatearticle === false" v-on:click="$emit('setuserarticle', $event, article.articleId)">
@@ -418,23 +426,23 @@ Vue.component('article-component', {
         <div class="field is-grouped is-grouped-multiline">
           <span class="tags has-addons" v-for="(topic,index) in article.topics" >
             <button  
-                class="tag is-small is-dark is-uppercase is-size-7 topicButton" 
+                class="tag is-small is-dark is-uppercase is-size-7 button topicButton" 
                 :value="topic" 
-                v-on:click="openTopicModal(topic)"
+                v-on:click="openTopicModal($event, topic)"
                 v-bind:key="key('topic', topic, index)">
               {{topic}}
             </button>
-            <button class="tag is-delete topicButton" v-if="article.topics.length > 1" v-on:click="deleteTopic(topic)"></button>
+            <button class="tag is-delete topicButton button" v-if="article.topics.length > 1" v-on:click="deleteTopic(topic)"></button>
             </span>
           <span class="tags has-addons" v-for="(extraTopic,index) in article.extraTopics"  v-if="article.extraTopics != null"> 
             <button class="tag is-small is-light is-uppercase 
-                is-size-7 topicButton" 
+                is-size-7 topicButton button" 
                 :value="extraTopic" 
                 v-bind:key="key('extraTopic', extraTopic, index)"
-                v-on:click="openTopicModal(extraTopic)">
+                v-on:click="openTopicModal($event, extraTopic)">
                 {{extraTopic}}
             </button>
-            <button class="tag is-delete topicButton" v-on:click="deleteTopic(extraTopic)"></button>
+            <button class="tag is-delete topicButton button" v-on:click="deleteTopic(extraTopic)"></button>
           </span>
           <span>
             <add-topic-button v-if="article.topics != null"
@@ -446,13 +454,7 @@ Vue.component('article-component', {
             
           </span>
         </div>
-        <add-topic v-show="isaddtopic" v-on:changeArticle="changeArticleContent"
-          v-on:closeaddtopic="setAddTopic(false)"
-          :selectoradd='"add"'
-          v-bind:key="key('add-topic-parent', article.articleId, 1)"
-          :topiclist="topiclist" 
-          :articleId="article.articleId" 
-          :articleTopic="article.topics[0]" />
+        
         
       </li>
       
@@ -489,9 +491,9 @@ Vue.component('article-component', {
       var response = await postReq("/api/deleteTopic", jsonObj)
       return this.changeArticleContent(response)
     },
-    openTopicModal: async function(topic){        
-      // Opens the topic modal when one of the topic tags is clicked.     
-      return articleList.openTopicModal(topic)
+    openTopicModal: async function(e, topic){        
+      // Opens the topic modal when one of the topic tags is clicked.
+      return articleList.openTopicModal(e, topic)
     },
     setAddTopic:function(bool){
       if(bool == true){
@@ -505,6 +507,7 @@ Vue.component('article-component', {
           }
           
         })}, 100)
+        document.getElementById(`article-${this.article.articleId}-add-topic-parent-${this.article.articleId}-1`).scrollIntoView()
       }
       
       return this.isaddtopic = bool

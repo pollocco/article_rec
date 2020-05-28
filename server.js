@@ -794,12 +794,12 @@ router.post('/getTopicArticlesFiltered', function(req, res, next){
 
 router.get('/getUserArticlesHistory', function(req, res, next){
     var userId = req.session.userId;
-    mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed, GROUP_CONCAT(Topics.name SEPARATOR " | ") as topic FROM Articles ' +
+    mysql.pool.query('SELECT Articles.*, UserArticles.lastViewed, GROUP_CONCAT(DISTINCT(Topics.name) SEPARATOR " | ") as topic FROM Articles ' +
     'JOIN UserArticles ON Articles.articleId = UserArticles.articleId  ' +
     'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
     'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
     'JOIN UserTopics ON Topics.topicId = UserTopics.topicId ' +
-    'WHERE UserTopics.userId = ? GROUP BY Articles.articleId, UserArticles.userId ORDER BY UserArticles.lastViewed DESC', [userId], function(error, result){
+    'WHERE UserArticles.userId = ? GROUP BY Articles.articleId, UserArticles.userId ORDER BY UserArticles.lastViewed DESC', [userId], function(error, result){
         if(error){
             console.log(error)
         }
@@ -816,7 +816,7 @@ router.get('/getUserArticlesHistoryLimit3', function(req, res, next){
     'JOIN ArticleTopics ON Articles.articleId = ArticleTopics.articleId ' +
     'JOIN Topics ON ArticleTopics.topicId = Topics.topicId ' +
     'JOIN UserTopics ON Topics.topicId = UserTopics.topicId ' +
-    'WHERE UserTopics.userId = ? GROUP BY Articles.articleId, UserArticles.userId ORDER BY UserArticles.lastViewed DESC LIMIT 3', [userId], function(error, result){
+    'WHERE UserArticles.userId = ? GROUP BY Articles.articleId, UserArticles.userId ORDER BY UserArticles.lastViewed DESC LIMIT 3', [userId], function(error, result){
         if(error){
             console.log(error)
         }

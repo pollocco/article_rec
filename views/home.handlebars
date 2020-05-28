@@ -13,8 +13,8 @@
                         <div class="tile is-parent">
                             <div>
                                 <div class="title">My Reading List
-                                    <button class="button is-primary" id="addNewArticleButton"><a href="/form"
-                                            style="color:white !important">Add Article</a></button>
+                                    <a href="/form"
+                                            style="color:white !important"><button class="button is-primary" id="addNewArticleButton">Add Article</button></a>
                                     <div class="dropdown" id="filterDrop">
                                         <div class="dropdown-trigger">
                                             <button class="button" aria-haspopup="true" aria-controls="dropdown-menu2"
@@ -183,7 +183,7 @@
                                 <p class="title">Recent Articles</p>
                                 <history-sidebar class="user-article-history-list" :articles="userArticles" v-on:setuserarticle="setUserArticle">
                                 </history-sidebar>
-                                <button class="button" style="display: block; margin: 0 auto;"><a href="/user">View all on user page</a></button>
+                                <a href="/user"><button class="button" style="display: block; margin: 0 auto;">View all on user page</button></a>
                             </article>
                         </div>
                     </div>
