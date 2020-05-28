@@ -113,6 +113,7 @@ opacity: 0;
 
 table{
     max-height: 400px;
+    overflow-x:hidden;
     overflow-y: scroll;
 }
 
@@ -188,6 +189,7 @@ table{
     border-bottom: 1px solid #ededed;
     display: block;
     max-height: 400px;
+    overflow-x:hidden;
     overflow-y: scroll;
 }
 
@@ -204,6 +206,7 @@ table{
 #articleContainer{
     max-height: 1300px;
     min-height: 1300px;
+    overflow-x:hidden;
     overflow-y:scroll;
 }
 
@@ -346,7 +349,8 @@ button.topicButton.is-light:hover{
 }
 
 .user-article-history-list {
-    overflow: scroll;
+    overflow-y: scroll;
+    overflow-x: hidden;
     max-height: 800px;
     margin-bottom: 10px;
 }

@@ -419,7 +419,7 @@ Vue.component('article-component', {
         
       </div>
       <span class="author is-size-6 has-text-dark">
-      {{article.firstName}} {{article.lastName}}&nbsp;|&nbsp;<span>{{article.periodicalName}}</span>&nbsp;|&nbsp;🗓️&nbsp;{{toLocalDate(article.date)}}
+      {{article.firstName}} {{article.lastName}}&nbsp;|&nbsp;<span>{{article.periodicalName}}</span>&nbsp;|&nbsp;<img src="/calendar.png" style="height:1em; width:auto; vertical-align:middle;">&nbsp;{{toLocalDate(article.date)}}
       </span>
       <br/>
       <br/>
