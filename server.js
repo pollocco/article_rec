@@ -928,18 +928,13 @@ router.post('/getJustOneArticleByTitle', function(req, res, next){
 })
 
 router.get('/searchTitles', function(req, res, next){
-    var query = req.query.q
-    query += "%"
-    mysql.pool.query('SELECT Articles.title as title, Articles.url as href FROM Articles WHERE Articles.title LIKE ?', [query], function(error, result){
+    var query = "%" + req.query.q + "%";
+    mysql.pool.query('SELECT Articles.* FROM Articles WHERE Articles.title LIKE ?', [query], function(error, result){
         if(error){
             console.log(error)
         }
         else{
-            var arr = []
-            for(i=0;i<result.length;i++){
-                arr.push(result[i].title)
-            }
-            res.send(arr)
+            res.send(result)
         }
     })
 })

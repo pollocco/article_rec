@@ -338,12 +338,23 @@ Vue.component('add-topic', {
       }
       if(!isAlreadyThere){
         articleList.topics.push({"name":this.newtopic, "topicId":response})
+        articleList.topics.sort(compareTopics)
       }
       event.target.classList.remove("is-loading")
       this.$emit('changeArticle')
     }
   }
 })
+
+function compareTopics(a, b){
+  if(a.name > b.name){
+    return 1;
+  } else if(a.name < b.name){
+    return -1;
+  } else{
+    return 0;
+  }
+}
 
 Vue.component('add-topic-button',{
   template:`
@@ -383,14 +394,6 @@ Vue.component('article-component', {
           </a>
           <br/>
         </p>
-        <add-topic v-show="isaddtopic" v-on:changeArticle="changeArticleContent"
-          v-on:closeaddtopic="setAddTopic(false)"
-          :selectoradd='"add"'
-          v-bind:key="key('add-topic-parent', article.articleId, 1)"
-          :id="key('add-topic-parent', article.articleId, 1)"
-          :topiclist="topiclist" 
-          :articleId="article.articleId" 
-          :articleTopic="article.topics[0]" />
         <p class="article-content is-size-6 has-text-grey-dark">
           {{article.content}} &nbsp;
           <a :href="article.url" target="_blank" v-show="isupdatearticle === false" v-on:click="$emit('setuserarticle', $event, article.articleId)">
@@ -454,7 +457,14 @@ Vue.component('article-component', {
             
           </span>
         </div>
-        
+        <add-topic v-show="isaddtopic" v-on:changeArticle="changeArticleContent"
+          v-on:closeaddtopic="setAddTopic(false)"
+          :selectoradd='"add"'
+          v-bind:key="key('add-topic-parent', article.articleId, 1)"
+          :id="key('add-topic-parent', article.articleId, 1)"
+          :topiclist="topiclist" 
+          :articleId="article.articleId" 
+          :articleTopic="article.topics[0]" />
         
       </li>
       

@@ -519,7 +519,8 @@ var articleList = new Vue({
       // Opens the article-preview modal and sets the article to be displayed.
       // getJustOneArticleGeneric is used because *all* articles are being searched,
       // therefore we don't want a list specific to the user's topics.
-      var jsonObj = {}                       
+      var jsonObj = {}              
+      console.log(item)         
       jsonObj["title"] = item.dataset.val
       var response = await postReq('/api/getJustOneArticleGeneric', jsonObj)  
       var topicsArr = response[0].topic.split("&&&")
@@ -599,7 +600,8 @@ new autoComplete({
     source: function(term, response){
         try { xhr.abort(); } catch(e){}
         xhr = $.getJSON('/api/searchTitles', { q: term }, function(data){ 
-          response(data); 
+          console.log(data)
+          response(data.map(x=>x.title)); 
         });
     },
     onSelect: function(e, b, item){
