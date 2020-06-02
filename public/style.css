@@ -20,7 +20,7 @@ body {
 .articeList{
     align-items: stretch;
     min-width: 100%;
-    position:relative; 
+    position:relative;
 }
 
 
@@ -305,6 +305,10 @@ table{
 }
 .user-info .username {
     margin-top:20px;
+}
+.user-info .delete-my-account-btn {
+    right: 40px;
+    position: absolute;
 }
 
 .table {
