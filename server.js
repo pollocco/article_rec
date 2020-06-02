@@ -300,7 +300,7 @@ router.post('/sendFullArticleForm', function(req, res, next){
                                             results.push(result)
                                             mysql.pool.query('INSERT INTO AuthorArticles (authorId, articleId) VALUES ' +
                                             '((SELECT authorId FROM Authors WHERE Authors.firstName=? AND Authors.lastName=?), ' +
-                                            '(SELECT articleId FROM Articles WHERE Articles.title = ? AND Articles.url = ?))', 
+                                            '(SELECT articleId FROM Articles WHERE Articles.title = ? AND Articles.url = ?))',
                                             [firstName, lastName, title, url], function(error, result){
                                                 if(error){
                                                     console.log(error)
@@ -308,7 +308,7 @@ router.post('/sendFullArticleForm', function(req, res, next){
                                                     results.push(result)
                                                     mysql.pool.query('INSERT INTO PeriodicalArticles (periodicalId, articleId) VALUES ' +
                                                     '((SELECT periodicalId FROM Periodicals WHERE Periodicals.name=?), ' +
-                                                    '(SELECT articleId FROM Articles WHERE Articles.title = ? AND Articles.url = ?))', 
+                                                    '(SELECT articleId FROM Articles WHERE Articles.title = ? AND Articles.url = ?))',
                                                     [periodicalName, title, url], function(error, result){
                                                         if(error){
                                                             console.log(error)
@@ -577,7 +577,7 @@ router.get('/getTopicArticlesWithConcatTopics', function(req, res, next){
     'WHERE UserTopics.userId =? GROUP BY Articles.articleId, Authors.authorId, Periodicals.periodicalId, Periodicals.name ORDER BY Articles.date DESC ', [userId], function(error, result){
         if(error){
             console.log(error)
-        } 
+        }
         else{
             res.send(result)
         }
@@ -757,7 +757,7 @@ router.post('/addTopic', function(req, res, next){
             }
         }
     })
-    
+
 })
 
 router.post('/getTopicArticlesFiltered', function(req, res, next){
@@ -898,7 +898,7 @@ router.post('/getJustOneArticleGeneric', function(req, res, next){
         else{
             res.send(result)
         }
-    }) 
+    })
 })
 
 router.post('/getJustOneArticleByTitle', function(req, res, next){
@@ -949,6 +949,19 @@ router.post('/getRelatedTopics', function(req, res, next){
         }
         else{
             res.send(result)
+        }
+    })
+});
+
+router.delete('/deleteUser', function(req, res, next){
+    var userId = req.session.userId
+
+    mysql.pool.query('DELETE FROM Users WHERE userId=?', [userId], function(error, result){
+        if(error){
+            console.log(error)
+        }
+        else{
+            res.send({status:'success'});
         }
     })
 })
