@@ -111,3 +111,6 @@ get-articles-nyt.js
 getArticles.js
 public/scratch.js
 get-articles-news-api.js
+
+# Mac OS
+.DS_Store

@@ -30,7 +30,7 @@ for (i = 0; i < response.length; i++) {
 }
 
 async function toggleUserTopic(checkbox, checkboxes) {
-    var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"}, 
+    var loader = makeNode("progress", [{"id":"checkboxLoader"}, {"max":"100"},
       {"className":"progress is-small is-dark"}, {"textContent":"30%"}])
     checkbox.cell.replaceChild(loader, checkbox)
     let jsonObj = {
@@ -68,7 +68,7 @@ function makeTable(response) {
         cell.appendChild(cellText);
 
         let checkboxCell = row.insertCell();
-        let checkbox = makeNode("input", [{"id":response[i].name}, {"cell":checkboxCell}, {"cellText":cellText}, 
+        let checkbox = makeNode("input", [{"id":response[i].name}, {"cell":checkboxCell}, {"cellText":cellText},
                                   {"topicId":response[i].topicId}, {"articleId":response[i].articleId}, {"name":response[i].name}, {"type":"checkbox"}])
 
         checkbox.addEventListener("click", function () {
@@ -127,7 +127,7 @@ function makeUserArticleHistory(response){
         if(response[i].content != null){
             li.appendChild(content);
         }
-        
+
         li.appendChild(lastViewed);
         li.appendChild(link);
 
@@ -168,10 +168,30 @@ function getUserArticlesHistory(){
     req.send();
 }
 
+function deleteUser() {
+    var req = new XMLHttpRequest();
+    req.open("DELETE", "/api/deleteUser");
+    req.addEventListener('load', function(){
+        if(req.status >= 200 && req.status < 400){
+            var response = JSON.parse(req.responseText);
+            if(response.length > 0){
+                console.log(response)
+
+            }
+            else{
+                console.log('bad response')
+
+            }
+        }
+        else{
+            console.log("Error! " + req.statusText);
+        }
+    })
+    req.send();
+}
+
 document.addEventListener("DOMContentLoaded", async function(){
     var topics = await getReq("/api/getTopics")
     makeTable(topics)
     getUserArticlesHistory()
   })
-
-
