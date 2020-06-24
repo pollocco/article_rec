@@ -4,7 +4,7 @@
   "description": "",
   "main": "article.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.js 8080",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Connor Pollock, Matthew Spencer",
